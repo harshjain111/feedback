@@ -9,7 +9,7 @@ import { toLocalDate } from './time'
  * feedback rows carry — never as instants. "Today" means the café's today.
  */
 
-export const RANGE_PRESETS = ['today', 'yesterday', '7d', '30d', 'custom'] as const
+export const RANGE_PRESETS = ['today', 'yesterday', '7d', '30d', '90d', 'custom'] as const
 export type RangePreset = (typeof RANGE_PRESETS)[number]
 
 export type DateRange = {
@@ -25,6 +25,7 @@ export const PRESET_LABELS: Record<RangePreset, string> = {
   yesterday: 'Yesterday',
   '7d': '7 Days',
   '30d': '30 Days',
+  '90d': '90 Days',
   custom: 'Custom',
 }
 
@@ -50,6 +51,8 @@ export function rangeForPreset(preset: RangePreset, today = toLocalDate()): Date
       return { preset, from: shift(today, -6), to: today }
     case '30d':
       return { preset, from: shift(today, -29), to: today }
+    case '90d':
+      return { preset, from: shift(today, -89), to: today }
     case 'custom':
       return { preset, from: today, to: today }
   }

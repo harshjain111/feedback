@@ -219,22 +219,82 @@ export async function getTrend(range: DateRange): Promise<TrendPoint[]> {
   const rows = await dailyRows(range)
   const byDate = new Map(rows.map((row) => [row.local_date, row]))
 
-  const points: TrendPoint[] = []
-  const cursor = new Date(`${range.from}T00:00:00Z`)
-  const end = new Date(`${range.to}T00:00:00Z`)
-
-  while (cursor <= end) {
-    const date = cursor.toISOString().slice(0, 10)
+  return eachDay(range).map((date) => {
     const row = byDate.get(date)
-    points.push({
+    return {
       date,
       value: row?.avg_score === null || row?.avg_score === undefined ? null : Number(row.avg_score),
       count: row?.feedback_count ?? 0,
+    }
+  })
+}
+
+/**
+ * One trend series per category (§25).
+ *
+ * Same gap rule as getTrend: a category with no ratings on a given day is null,
+ * never zero, so the line breaks instead of implying the café scored nothing.
+ */
+export async function getCategoryTrends(
+  range: DateRange,
+): Promise<{ categoryId: string; name: string; points: TrendPoint[] }[]> {
+  const client = await db()
+  const outlet = await outletId()
+
+  const [rowsResult, categoriesResult] = await Promise.all([
+    client
+      .from('v_category_daily')
+      .select('local_date, category_id, avg_rating, rating_count')
+      .eq('outlet_id', outlet)
+      .gte('local_date', range.from)
+      .lte('local_date', range.to),
+    client
+      .from('categories')
+      .select('category_id, name, display_order')
+      .eq('outlet_id', outlet)
+      .eq('active', true)
+      .order('display_order'),
+  ])
+
+  if (rowsResult.error) throw new Error(`Category trend failed: ${rowsResult.error.message}`)
+
+  const byCategory = new Map<string, Map<string, { value: number | null; count: number }>>()
+  for (const row of rowsResult.data ?? []) {
+    if (!row.category_id || !row.local_date) continue
+    const series = byCategory.get(row.category_id) ?? new Map()
+    series.set(row.local_date, {
+      value: row.avg_rating === null ? null : Number(row.avg_rating),
+      count: row.rating_count ?? 0,
     })
-    cursor.setUTCDate(cursor.getUTCDate() + 1)
+    byCategory.set(row.category_id, series)
   }
 
-  return points
+  const days = eachDay(range)
+
+  return (categoriesResult.data ?? []).map((category) => {
+    const series = byCategory.get(category.category_id)
+    return {
+      categoryId: category.category_id,
+      name: category.name,
+      points: days.map((date) => ({
+        date,
+        value: series?.get(date)?.value ?? null,
+        count: series?.get(date)?.count ?? 0,
+      })),
+    }
+  })
+}
+
+/** Every Kolkata calendar date in the range, inclusive. */
+function eachDay(range: DateRange): string[] {
+  const days: string[] = []
+  const cursor = new Date(`${range.from}T00:00:00Z`)
+  const end = new Date(`${range.to}T00:00:00Z`)
+  while (cursor <= end) {
+    days.push(cursor.toISOString().slice(0, 10))
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+  return days
 }
 
 async function issueRows(range: DateRange): Promise<{ issue_id: string; mention_count: number }[]> {
