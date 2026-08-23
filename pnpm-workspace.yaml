@@ -1,4 +1,16 @@
+# Native postinstall scripts, allowed explicitly.
+#
+# pnpm 10+ blocks build scripts by default and fails the install rather than
+# running them silently — a good default, but these three genuinely need theirs:
+#
+#   sharp          image optimisation in the production build
+#   esbuild        the test runner's transform
+#   unrs-resolver  the eslint import resolver used during `next build`
+#
+# pnpm 11 reads this file; pnpm 10 reads pnpm.onlyBuiltDependencies in
+# package.json. Both are set so the build does not depend on which version the
+# host picks.
 allowBuilds:
-  esbuild: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
