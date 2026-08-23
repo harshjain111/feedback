@@ -73,10 +73,91 @@ export const CONFIG_DEFAULTS: AppConfig = ${body} as const satisfies AppConfig
 `
 
   await writeFile(OUT, out, 'utf8')
+
+  await writeReferenceDefaults(db)
   await db.close()
 
   console.log(
     `lib/config.defaults.ts: ${rows.length} keys across ${Object.keys(tree).length} sections`,
+  )
+}
+
+/**
+ * Also emit lib/reference.defaults.ts — the seeded categories, rating scale,
+ * issue chips and theme lexicon.
+ *
+ * Same reasoning as the config fallback, plus one more: it lets the kiosk render
+ * and be clicked through in local development before a Supabase project exists,
+ * which is how the Prompt 10 and 17 checkpoints get reviewed at all. The loaders
+ * only reach for it when Supabase is unconfigured AND NODE_ENV is not
+ * production — a missing key in production must still fail loudly.
+ *
+ * IDs are synthetic and prefixed `offline-` so a stray one is obvious in a log
+ * and so regenerating does not churn the file with fresh uuids.
+ */
+async function writeReferenceDefaults(db) {
+  const slug = (value) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+
+  const { rows: categories } = await db.query(
+    `select name, question, icon, display_order from categories where active order by display_order`,
+  )
+  const { rows: scale } = await db.query(
+    `select value, face_key, label, colour from rating_scale where active order by value`,
+  )
+  const { rows: issues } = await db.query(
+    `select name, icon, kind, display_order from issues where active order by kind, display_order`,
+  )
+  const { rows: themes } = await db.query(
+    `select t.name, t.kind, t.display_order,
+            array_agg(k.keyword order by k.keyword) filter (where k.active) as keywords
+     from themes t
+     left join theme_keywords k on k.theme_id = t.theme_id
+     where t.active
+     group by t.name, t.kind, t.display_order
+     order by t.kind, t.display_order`,
+  )
+
+  const payload = {
+    categories: categories.map((c) => ({ category_id: `offline-category-${slug(c.name)}`, ...c })),
+    ratingScale: scale.map((s) => ({ scale_id: `offline-scale-${s.value}`, ...s })),
+    issues: issues.map((i) => ({ issue_id: `offline-issue-${i.kind}-${slug(i.name)}`, ...i })),
+    themes: themes.map((t) => ({
+      theme_id: `offline-theme-${t.kind}-${slug(t.name)}`,
+      name: t.name,
+      kind: t.kind,
+      display_order: t.display_order,
+      keywords: t.keywords ?? [],
+    })),
+  }
+
+  const file = `/**
+ * GENERATED FILE — do not edit by hand.
+ *
+ * The seeded reference rows, derived from supabase/migrations/0002_seed.sql.
+ * Regenerate with:  pnpm gen:config
+ *
+ * Used only when Supabase is unconfigured outside production, so the kiosk can
+ * be rendered and reviewed locally. The database is always authoritative.
+ */
+import type { Category, Issue, RatingFace, Theme } from './config.types'
+
+export const REFERENCE_DEFAULTS: {
+  categories: Category[]
+  ratingScale: RatingFace[]
+  issues: Issue[]
+  themes: Theme[]
+} = ${JSON.stringify(payload, null, 2)}
+`
+
+  await writeFile(join(process.cwd(), 'lib', 'reference.defaults.ts'), file, 'utf8')
+  console.log(
+    `lib/reference.defaults.ts: ${payload.categories.length} categories, ${payload.ratingScale.length} faces, ${payload.issues.length} chips, ${payload.themes.length} themes`,
   )
 }
 

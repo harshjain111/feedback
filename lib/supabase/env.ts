@@ -32,3 +32,20 @@ export function supabaseServiceRoleKey(): string {
 export function outletCode(): string {
   return process.env.NEXT_PUBLIC_OUTLET_CODE ?? 'AIC'
 }
+
+/** True when both halves of the Supabase configuration are present. */
+export function isSupabaseConfigured(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+}
+
+/**
+ * Allow the loaders to serve seeded reference data instead of hitting Supabase.
+ *
+ * Only outside production, and only when Supabase is not configured at all. It
+ * exists so the kiosk can be rendered and clicked through locally before a
+ * project is provisioned; in production a missing key must still fail loudly
+ * rather than quietly serving stale copy.
+ */
+export function allowOfflineSeedFallback(): boolean {
+  return !isSupabaseConfigured() && process.env.NODE_ENV !== 'production'
+}

@@ -2,9 +2,10 @@ import 'server-only'
 
 import { cache } from 'react'
 import { createAdminClient } from './supabase/admin'
-import { outletCode } from './supabase/env'
+import { allowOfflineSeedFallback, outletCode } from './supabase/env'
 import { assembleConfig } from './config.assemble'
 import { CONFIG_DEFAULTS } from './config.defaults'
+import { REFERENCE_DEFAULTS } from './reference.defaults'
 import {
   isFaceKey,
   type AppConfig,
@@ -34,6 +35,7 @@ const REVALIDATE_SECONDS = 60
 
 /** Resolves the outlet this deployment serves. Cached for the request. */
 export const getOutletId = cache(async (): Promise<string> => {
+  if (allowOfflineSeedFallback()) return 'offline-outlet'
   const db = createAdminClient()
   const { data, error } = await db
     .from('outlets')
@@ -54,6 +56,11 @@ export const getOutletId = cache(async (): Promise<string> => {
 // -----------------------------------------------------------------------------
 
 async function loadConfig(): Promise<AppConfig> {
+  if (allowOfflineSeedFallback()) {
+    console.warn('[config] Supabase is not configured; serving seeded defaults (dev only).')
+    return CONFIG_DEFAULTS
+  }
+
   const db = createAdminClient()
   const outletId = await getOutletId()
 
@@ -94,6 +101,7 @@ export const getConfig = cache(async (): Promise<AppConfig> => {
 // -----------------------------------------------------------------------------
 
 export const getCategories = cache(async (): Promise<Category[]> => {
+  if (allowOfflineSeedFallback()) return REFERENCE_DEFAULTS.categories
   const db = createAdminClient()
   const outletId = await getOutletId()
 
@@ -109,6 +117,7 @@ export const getCategories = cache(async (): Promise<Category[]> => {
 })
 
 export const getRatingScale = cache(async (): Promise<RatingFace[]> => {
+  if (allowOfflineSeedFallback()) return REFERENCE_DEFAULTS.ratingScale
   const db = createAdminClient()
   const outletId = await getOutletId()
 
@@ -132,6 +141,9 @@ export const getRatingScale = cache(async (): Promise<RatingFace[]> => {
 })
 
 export const getIssues = cache(async (kind: IssueKind): Promise<Issue[]> => {
+  if (allowOfflineSeedFallback()) {
+    return REFERENCE_DEFAULTS.issues.filter((issue) => issue.kind === kind)
+  }
   const db = createAdminClient()
   const outletId = await getOutletId()
 
@@ -152,6 +164,7 @@ export const getIssues = cache(async (kind: IssueKind): Promise<Issue[]> => {
  * Read from the database, never a map in code.
  */
 export const getThemeLexicon = cache(async (): Promise<Theme[]> => {
+  if (allowOfflineSeedFallback()) return REFERENCE_DEFAULTS.themes
   const db = createAdminClient()
   const outletId = await getOutletId()
 
