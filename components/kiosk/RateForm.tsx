@@ -6,6 +6,7 @@ import { BigButton } from './BigButton'
 import { CategoryIcon } from './CategoryIcon'
 import { FaceScale } from './FaceScale'
 import type { Category, RatingFace } from '@/lib/config.types'
+import { ratingValues, routeAfterRating } from '@/lib/journey'
 import { getDraft, patchDraft } from '@/lib/session'
 
 /**
@@ -80,10 +81,7 @@ export function RateForm({
         <BigButton
           fullWidth
           disabled={!complete}
-          onClick={() => {
-            // Prompt 11 replaces this with the §4 branch router.
-            router.push('/comment')
-          }}
+          onClick={() => router.push(routeAfterRating(ratingValues(ratings)))}
         >
           {continueLabel}
         </BigButton>
