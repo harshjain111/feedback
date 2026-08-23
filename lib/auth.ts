@@ -3,6 +3,7 @@ import 'server-only'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from './supabase/server'
+import { isSupabaseConfigured } from './supabase/env'
 import { isRole, type Role } from './permissions'
 
 /**
@@ -24,6 +25,11 @@ export type CurrentUser = {
 }
 
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+  // No Supabase configured means nobody can be signed in. Returning null rather
+  // than throwing keeps the guard's behaviour correct — redirect to login —
+  // instead of turning a misconfiguration into a 500 on every admin route.
+  if (!isSupabaseConfigured()) return null
+
   const supabase = await createClient()
 
   const {
