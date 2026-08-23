@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen:types": "supabase gen types typescript --local > types/database.ts"
+    "gen:types": "node scripts/generate-database-types.mjs",
+    "gen:config": "node scripts/generate-config-defaults.mjs",
+    "gen": "pnpm gen:types && pnpm gen:config"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
