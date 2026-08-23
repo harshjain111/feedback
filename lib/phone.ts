@@ -28,3 +28,19 @@ export function maskPhone(phone: string | null, visibleDigits = 4): string | nul
   if (phone.length <= visibleDigits) return 'X'.repeat(phone.length)
   return 'X'.repeat(phone.length - visibleDigits) + phone.slice(-visibleDigits)
 }
+
+/**
+ * Whether KEEP ME CONNECTED on the contact screen has anything to keep.
+ *
+ * A valid phone number is the whole condition, and a name deliberately is not
+ * part of it. Guest resolution keys on the phone (§7): POST /api/feedback only
+ * creates or attaches a guest when a number is present, so a name submitted
+ * without one is discarded. Enabling the button for a name alone would tell the
+ * guest they had connected while storing nothing.
+ *
+ * This gates one button, never the journey — SKIP sits beneath it, full size
+ * and always live (§4).
+ */
+export function canKeepContact(phone: string): boolean {
+  return phone.trim() !== '' && isValidPhone(phone)
+}

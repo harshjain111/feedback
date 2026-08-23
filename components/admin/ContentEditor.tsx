@@ -107,6 +107,7 @@ const SCREENS: Screen[] = [
       { key: 'contact.cta', label: 'Primary button' },
       { key: 'contact.skip', label: 'Skip button' },
       { key: 'contact.micro', label: 'Micro copy' },
+      { key: 'contact.cta_hint', label: 'Micro copy while the button is dimmed' },
       { key: 'privacy.consent_text', label: 'Consent text', type: 'textarea' },
     ],
     note: 'Both fields are optional and SKIP is always available. The consent line must stay legible, not shrink into fine print.',

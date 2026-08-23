@@ -48,6 +48,7 @@ const LOCKED_SECTIONS = [
  * adding one should feel like a cost.
  */
 const AUTHORED_KEYS = new Set([
+  'contact.cta_hint',
   'contact.followup_sub',
   'contact.phone_hint',
   'grievance.name',

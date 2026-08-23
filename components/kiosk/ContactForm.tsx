@@ -7,7 +7,7 @@ import { BigButton } from './BigButton'
 import type { AppConfig } from '@/lib/config.types'
 // From lib/phone, not lib/validation: the latter imports zod, which has no
 // business in the kiosk bundle (§6).
-import { isValidPhone } from '@/lib/phone'
+import { canKeepContact, isValidPhone } from '@/lib/phone'
 import { PrefetchNext } from './PrefetchNext'
 import { ratingValues, sentimentFor } from '@/lib/journey'
 import { getDraft, patchDraft } from '@/lib/session'
@@ -19,6 +19,17 @@ import { getDraft, patchDraft } from '@/lib/session'
  * corner. If the guest asked to be followed up the subheading changes to
  * explain why a number helps, but the field stays optional and SKIP stays
  * exactly as reachable. Nothing here ever blocks.
+ *
+ * KEEP ME CONNECTED, however, is live only once there is something to keep.
+ * It used to work on an empty form, and that was a promise the system could not
+ * honour: guest resolution keys on the phone number (§7), so a submission with
+ * no number — or with a name and no number — stores no guest at all. The guest
+ * tapped a button that said they were connected and walked away not connected.
+ *
+ * Gating the button is not the same as requiring the field. §4's rule is that
+ * nothing may block the journey, and nothing does: SKIP sits directly beneath,
+ * full size, always live, and it is the correct button for a guest who does not
+ * want to share anything.
  */
 export function ContactForm({
   copy,
@@ -52,6 +63,14 @@ export function ContactForm({
   // Only ever complains about something the guest actually typed.
   const phoneLooksWrong = touchedPhone && phone.trim() !== '' && !isValidPhone(phone)
   const phoneLooksRight = phone.trim() !== '' && isValidPhone(phone)
+
+  // A valid number is the whole condition — see canKeepContact for why a name
+  // on its own does not count.
+  const canKeep = canKeepContact(phone)
+
+  // Explain the dimming only once the guest has started — a hint under an
+  // untouched form is noise, and the micro line already says SKIP is fine.
+  const showCtaHint = !canKeep && (name.trim() !== '' || phone.trim() !== '')
 
   const finish = (keepDetails: boolean) => {
     const keptPhone = keepDetails ? phone.trim() : ''
@@ -186,15 +205,19 @@ export function ContactForm({
 
       <div className="k-cta-dock shrink-0" style={{ paddingInline: px(48), paddingBottom: px(20) }}>
         <div className="flex flex-col" style={{ gap: px(12) }}>
-          <BigButton fullWidth className="k-cta" onClick={() => finish(true)}>
+          <BigButton fullWidth className="k-cta" disabled={!canKeep} onClick={() => finish(true)}>
             {copy.cta}
           </BigButton>
           <BigButton fullWidth variant="secondary" className="k-cta" onClick={() => finish(false)}>
             {copy.skip}
           </BigButton>
         </div>
-        <p className="text-k-micro text-ink-muted text-center" style={{ marginTop: px(14) }}>
-          {copy.micro}
+        <p
+          className="text-k-micro text-ink-muted text-center"
+          style={{ marginTop: px(14) }}
+          aria-live="polite"
+        >
+          {showCtaHint ? copy.cta_hint : copy.micro}
         </p>
       </div>
     </>

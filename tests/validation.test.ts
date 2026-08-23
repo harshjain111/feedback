@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canKeepContact,
   combineComments,
   feedbackSubmissionSchema,
   isValidPhone,
@@ -85,5 +86,35 @@ describe('combineComments — §14.10, nothing is dropped', () => {
     expect(combined).toBe('The dosa was cold.\n\nOtherwise a lovely evening.')
     expect(combined).toContain('The dosa was cold.')
     expect(combined).toContain('Otherwise a lovely evening.')
+  })
+})
+
+describe('canKeepContact — what enables KEEP ME CONNECTED', () => {
+  it('is false for an empty form', () => {
+    expect(canKeepContact('')).toBe(false)
+    expect(canKeepContact('   ')).toBe(false)
+  })
+
+  it('is false for a half-typed number', () => {
+    expect(canKeepContact('98')).toBe(false)
+    expect(canKeepContact('98765')).toBe(false)
+    expect(canKeepContact('987654321')).toBe(false)
+  })
+
+  it('is false for ten digits that are not a mobile number', () => {
+    expect(canKeepContact('1234567890')).toBe(false)
+    expect(canKeepContact('5000000000')).toBe(false)
+  })
+
+  it('is true once a valid number is there, however it was typed', () => {
+    expect(canKeepContact('9876543210')).toBe(true)
+    expect(canKeepContact('+91 98765 43210')).toBe(true)
+    expect(canKeepContact('098765-43210')).toBe(true)
+  })
+
+  it('agrees with isValidPhone, so the button and the submit cannot disagree', () => {
+    for (const value of ['', '98', '1234567890', '9876543210', '+919876543210']) {
+      expect(canKeepContact(value), value).toBe(value.trim() !== '' && isValidPhone(value))
+    }
   })
 })

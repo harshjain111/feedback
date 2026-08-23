@@ -36,6 +36,7 @@ export const CONFIG_DEFAULTS: AppConfig = {
   },
   contact: {
     cta: 'KEEP ME CONNECTED →',
+    cta_hint: 'Add your mobile number to stay connected — or skip.',
     followup_sub: 'Leave your mobile number and a member of our team will personally reach out.',
     h1: "WE'D LOVE TO STAY CONNECTED ❤️",
     micro: 'Optional — you can skip this step.',

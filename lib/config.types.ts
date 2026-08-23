@@ -63,6 +63,12 @@ export type KioskCopy = {
     followup_sub: string
     /** Inline hint under the phone field. A hint, never a gate. */
     phone_hint: string
+    /**
+     * Why the primary button is dimmed. Shown only while it is: guest
+     * resolution keys on the phone number (§7), so KEEP ME CONNECTED with no
+     * number would store nothing. SKIP is always live either way.
+     */
+    cta_hint: string
   }
   thanks: {
     h1: string

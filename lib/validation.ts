@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { INDIAN_MOBILE, normalisePhone } from './phone'
 
-export { INDIAN_MOBILE, isValidPhone, normalisePhone } from './phone'
+export { canKeepContact, INDIAN_MOBILE, isValidPhone, normalisePhone } from './phone'
 
 /**
  * Shared validation — CLAUDE.md §5, §7.
