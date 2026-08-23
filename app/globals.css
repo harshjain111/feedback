@@ -113,3 +113,50 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* -----------------------------------------------------------------------------
+   Print (§38)
+
+   A manager should be able to put a week on paper for a staff meeting without
+   taking a screenshot. Chrome is dropped, colour is flattened to ink, and
+   borders are kept because the tables are the report.
+   -------------------------------------------------------------------------- */
+
+@media print {
+  nav,
+  header:has(button),
+  footer {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  /* Backgrounds do not print reliably and eat toner; the structure carries it. */
+  * {
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #000 !important;
+  }
+
+  table,
+  th,
+  td {
+    border-color: #999 !important;
+  }
+
+  /* A report split across a page break mid-table is unreadable. */
+  section,
+  table {
+    break-inside: avoid;
+  }
+
+  a[href]::after {
+    content: '';
+  }
+}
