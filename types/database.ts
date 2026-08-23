@@ -870,6 +870,101 @@ export type Database = {
         }
         Relationships: []
       }
+      v_category_daily: {
+        Row: {
+          outlet_id: string | null
+          local_date: string | null
+          category_id: string | null
+          rating_count: number | null
+          avg_rating: number | null
+          positive_count: number | null
+          neutral_count: number | null
+          negative_count: number | null
+        }
+        Relationships: []
+      }
+      v_feedback_daily: {
+        Row: {
+          outlet_id: string | null
+          local_date: string | null
+          feedback_count: number | null
+          avg_score: number | null
+          positive_count: number | null
+          neutral_count: number | null
+          negative_count: number | null
+          follow_up_count: number | null
+          comment_count: number | null
+          identified_guest_count: number | null
+        }
+        Relationships: []
+      }
+      v_follow_up_facts: {
+        Row: {
+          outlet_id: string | null
+          follow_up_id: string | null
+          feedback_id: string | null
+          guest_id: string | null
+          status: string | null
+          assigned_to: string | null
+          local_date: string | null
+          created_at: string | null
+          resolved_at: string | null
+          resolution_hours: number | null
+        }
+        Relationships: []
+      }
+      v_guest_summary: {
+        Row: {
+          guest_id: string | null
+          outlet_id: string | null
+          guest_code: string | null
+          name: string | null
+          total_feedbacks: number | null
+          average_rating: number | null
+          first_feedback_date: string | null
+          last_feedback_date: string | null
+          has_phone: boolean | null
+          is_repeat: boolean | null
+          is_negative: boolean | null
+          is_high_engagement: boolean | null
+          has_open_follow_up: boolean | null
+        }
+        Relationships: []
+      }
+      v_issue_daily: {
+        Row: {
+          outlet_id: string | null
+          local_date: string | null
+          issue_id: string | null
+          mention_count: number | null
+        }
+        Relationships: []
+      }
+      v_rating_facts: {
+        Row: {
+          outlet_id: string | null
+          feedback_id: string | null
+          guest_id: string | null
+          local_date: string | null
+          day_of_week: number | null
+          hour_bucket: string | null
+          sentiment: string | null
+          follow_up_requested: boolean | null
+          category_id: string | null
+          rating: number | null
+        }
+        Relationships: []
+      }
+      v_theme_daily: {
+        Row: {
+          outlet_id: string | null
+          local_date: string | null
+          theme_id: string | null
+          feedback_count: number | null
+          mention_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       /** aic_assign_guest_code() -> trigger */

@@ -8,3 +8,6 @@ CLAUDE.md
 
 # Generated.
 types/database.ts
+
+# Prettier has no SQL parser.
+*.sql
