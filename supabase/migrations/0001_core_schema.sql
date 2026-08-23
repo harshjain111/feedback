@@ -120,7 +120,9 @@ create table themes (
   active         boolean not null default true,
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now(),
-  constraint themes_outlet_name_key unique (outlet_id, name)
+  -- Scoped by kind: "Cleanliness" as praise and "Cleanliness" as a complaint
+  -- are different themes and must both be able to exist.
+  constraint themes_outlet_kind_name_key unique (outlet_id, kind, name)
 );
 
 create index themes_outlet_kind_idx on themes (outlet_id, kind, display_order);
