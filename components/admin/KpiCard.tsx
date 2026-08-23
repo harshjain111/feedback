@@ -44,13 +44,13 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        'bg-surface rounded-xl border p-4',
+        'bg-surface rounded-2xl border p-5',
         needsAttention ? 'border-[color:var(--color-bad)]/40' : 'border-line',
         className,
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-ink-muted text-xs font-medium tracking-wide uppercase">{label}</p>
+        <p className="text-ink-soft text-[13px] font-medium">{label}</p>
         {needsAttention ? (
           <span
             className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-bad)]/10 px-2 py-0.5 text-[11px] font-semibold text-[color:var(--color-bad)]"
@@ -64,23 +64,23 @@ export function KpiCard({
 
       <p
         className={cn(
-          'font-display text-ink mt-2 text-3xl tabular-nums',
+          'font-display text-ink mt-3 text-4xl tabular-nums',
           value === null && 'text-ink-muted',
         )}
       >
         {display}
       </p>
 
-      <div className="mt-1.5">
+      <div className="mt-2">
         <DeltaBadge comparison={comparison} polarity={polarity} />
       </div>
 
       {/* No feedback at all is a fact worth stating, not an empty card. */}
       {value === null ? (
-        <p className="text-ink-muted mt-2 text-xs">No feedback in this period.</p>
+        <p className="text-ink-muted mt-2 text-[13px]">No feedback in this period.</p>
       ) : null}
 
-      {footnote ? <p className="text-ink-muted mt-2 text-xs">{footnote}</p> : null}
+      {footnote ? <p className="text-ink-muted mt-2 text-[13px]">{footnote}</p> : null}
     </div>
   )
 }

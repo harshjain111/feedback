@@ -54,10 +54,10 @@ export default async function AdminFeedbackDetailPage({
         Back to feedback
       </Link>
 
-      <header className="border-line bg-surface rounded-xl border p-4">
+      <header className="border-line bg-surface rounded-2xl border p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-ink text-2xl">{detail.feedbackCode}</h1>
+            <h1 className="font-display text-ink text-3xl">{detail.feedbackCode}</h1>
             <p className="text-ink-muted mt-1 text-sm">
               {detail.localDate} at {detail.localTime.slice(0, 5)}
             </p>
@@ -103,7 +103,7 @@ export default async function AdminFeedbackDetailPage({
         </dl>
       </header>
 
-      <section className="border-line bg-surface rounded-xl border p-4">
+      <section className="border-line bg-surface rounded-2xl border p-4">
         <h2 className="text-ink-muted mb-3 text-xs font-semibold tracking-[0.14em] uppercase">
           Ratings
         </h2>
@@ -141,7 +141,7 @@ export default async function AdminFeedbackDetailPage({
       </section>
 
       {/* The guest's own words, in full and unedited. */}
-      <section className="border-line bg-surface rounded-xl border p-4">
+      <section className="border-line bg-surface rounded-2xl border p-4">
         <h2 className="text-ink-muted mb-3 text-xs font-semibold tracking-[0.14em] uppercase">
           What the guest wrote
         </h2>
@@ -161,7 +161,7 @@ export default async function AdminFeedbackDetailPage({
           canAssign={can(user, 'view:guests')}
         />
       ) : (
-        <section className="border-line rounded-xl border border-dashed p-4">
+        <section className="border-line rounded-2xl border border-dashed p-4">
           <p className="text-ink-muted text-sm">
             No follow-up was opened for this feedback — the guest did not ask to be contacted.
           </p>

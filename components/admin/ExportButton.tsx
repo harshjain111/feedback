@@ -16,9 +16,10 @@ export function ExportButton({ range }: { range: DateRange }) {
   return (
     <a
       href={`/api/export?${params.toString()}`}
-      className="border-line-strong text-ink-soft hover:bg-ground-sunk inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium"
+      className="text-accent-ink hover:bg-accent-hover inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors"
+      style={{ background: 'var(--color-accent)' }}
     >
-      <Download size={13} strokeWidth={2} aria-hidden="true" />
+      <Download size={15} strokeWidth={2.2} aria-hidden="true" />
       Export to Excel
     </a>
   )

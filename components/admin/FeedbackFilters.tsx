@@ -108,7 +108,7 @@ export function FeedbackFilters({
   }
 
   return (
-    <div className="border-line bg-surface rounded-xl border p-3">
+    <div className="border-line bg-surface rounded-2xl border p-3">
       <div className="flex flex-wrap items-end gap-3">
         <Select
           name="ratingBand"

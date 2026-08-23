@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import { DateRangeFilter } from '@/components/admin/DateRangeFilter'
 import { OutletSelector } from '@/components/admin/OutletSelector'
 import { Sidebar } from '@/components/admin/Sidebar'
-import { UserMenu } from '@/components/admin/UserMenu'
 import { requireUser } from '@/lib/auth'
 import { getOutlet } from '@/lib/config'
 
@@ -14,19 +13,16 @@ import { getOutlet } from '@/lib/config'
  * permissions are still checked in the pages, and RLS checks everything again
  * underneath.
  *
- * Visually this is the opposite of the kiosk on purpose: dense, desktop-first,
- * information before atmosphere.
+ * Visually the opposite of the kiosk on purpose: dark chrome, light canvas,
+ * dense and information-first. The kiosk is read once by a stranger; this is
+ * read every morning by someone who knows it.
  */
+
 /**
- * Never prerendered, never cached.
- *
- * Every page under here is per-user and per-request: the role decides what
- * renders, and the rows come back scoped by RLS to whoever is asking. Next
- * would otherwise be free to statically render these — it does exactly that
- * when the build runs without Supabase configured, because the guard
- * short-circuits before `cookies()` is ever touched and no dynamic API is
- * observed. Relying on an implicit `cookies()` call to opt out is too subtle a
- * thing to have standing between one manager's dashboard and another's.
+ * Never prerendered, never cached. Every page here is per-user and per-request:
+ * the role decides what renders and RLS scopes the rows. Relying on an implicit
+ * cookies() call to opt out is too subtle a thing to stand between one
+ * manager's dashboard and another's.
  */
 export const dynamic = 'force-dynamic'
 
@@ -35,21 +31,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const outlet = await getOutlet()
 
   return (
-    <div className="bg-ground flex min-h-dvh">
-      <Sidebar role={user.role} />
+    <div className="flex min-h-dvh" style={{ background: 'var(--color-admin-bg)' }}>
+      <Sidebar role={user.role} name={user.name} email={user.email} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="border-line bg-surface flex flex-wrap items-center justify-between gap-4 border-b px-6 py-3">
-          <div className="flex items-center gap-3">
-            <OutletSelector name={outlet.name} code={outlet.code} />
-            {/* useSearchParams needs a Suspense boundary to keep the rest of
-                the shell statically renderable. */}
-            <Suspense fallback={null}>
-              <DateRangeFilter />
-            </Suspense>
-          </div>
-
-          <UserMenu name={user.name} email={user.email} role={user.role} />
+          <OutletSelector name={outlet.name} code={outlet.code} />
+          {/* useSearchParams needs a Suspense boundary to keep the rest of the
+              shell statically renderable. */}
+          <Suspense fallback={null}>
+            <DateRangeFilter />
+          </Suspense>
         </header>
 
         <main className="min-w-0 flex-1 p-6">{children}</main>

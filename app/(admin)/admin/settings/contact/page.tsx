@@ -33,7 +33,7 @@ export default async function SettingsContactPage() {
         </p>
       ) : null}
 
-      <div className="border-line bg-surface divide-line divide-y rounded-xl border p-4">
+      <div className="border-line bg-surface divide-line divide-y rounded-2xl border p-4">
         <ConfigField configKey="grievance.name" label="Name" value={config.grievance.name} />
         <ConfigField
           configKey="grievance.phone"

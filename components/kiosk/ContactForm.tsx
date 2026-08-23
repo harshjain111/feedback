@@ -184,7 +184,7 @@ export function ContactForm({
         </p>
       </div>
 
-      <div className="shrink-0" style={{ paddingInline: px(48), paddingBottom: px(20) }}>
+      <div className="k-cta-dock shrink-0" style={{ paddingInline: px(48), paddingBottom: px(20) }}>
         <div className="flex flex-col" style={{ gap: px(12) }}>
           <BigButton fullWidth className="k-cta" onClick={() => finish(true)}>
             {copy.cta}

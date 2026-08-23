@@ -67,6 +67,7 @@ export default async function SettingsIndexPage() {
       <SectionHeading
         title="Settings"
         note="Anything here can be changed without a developer or a redeploy."
+        level="page"
       />
 
       <ul className="grid gap-3 sm:grid-cols-2">
@@ -74,7 +75,7 @@ export default async function SettingsIndexPage() {
           <li key={section.href}>
             <Link
               href={section.href}
-              className="border-line bg-surface hover:border-accent/50 block h-full rounded-xl border p-4"
+              className="border-line bg-surface hover:border-accent/50 block h-full rounded-2xl border p-5"
             >
               <span className="flex items-center gap-2">
                 <section.icon size={15} strokeWidth={1.8} className="text-accent" aria-hidden />

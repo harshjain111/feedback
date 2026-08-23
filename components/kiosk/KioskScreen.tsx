@@ -29,17 +29,25 @@ const TINT: Record<Tone, string> = {
   negative: 'var(--color-tint-negative)',
 }
 
-/** Surface colour with alpha, so the scrim tints with the pathway. */
+/**
+ * Surface colour with alpha, so the scrim tints with the pathway.
+ *
+ * The stops hold near-opaque down to ~80% and only then clear. An earlier
+ * version cleared from 66%, which is exactly where a centred content block puts
+ * its supporting line and its CTA — the copy came out washed over the rickshaw
+ * and the teacup. The illustration is still vivid across the bottom fifth,
+ * which is where its best detail is; nothing worth seeing was above it.
+ */
 const SCRIM: Record<Density, string> = {
   airy: `linear-gradient(to bottom,
-    rgb(255 253 248 / 0.90) 0%,
-    rgb(255 253 248 / 0.82) 38%,
-    rgb(255 253 248 / 0.45) 66%,
-    rgb(255 253 248 / 0.05) 100%)`,
+    rgb(255 253 248 / 0.92) 0%,
+    rgb(255 253 248 / 0.90) 55%,
+    rgb(255 253 248 / 0.76) 80%,
+    rgb(255 253 248 / 0.10) 100%)`,
   dense: `linear-gradient(to bottom,
-    rgb(255 253 248 / 0.95) 0%,
-    rgb(255 253 248 / 0.93) 55%,
-    rgb(255 253 248 / 0.80) 80%,
+    rgb(255 253 248 / 0.96) 0%,
+    rgb(255 253 248 / 0.95) 60%,
+    rgb(255 253 248 / 0.88) 84%,
     rgb(255 253 248 / 0.55) 100%)`,
 }
 

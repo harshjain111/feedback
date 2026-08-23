@@ -34,7 +34,7 @@ export function DateRangeFilter() {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="border-line bg-surface inline-flex rounded-lg border p-1">
+      <div className="border-line bg-surface inline-flex rounded-full border p-1">
         {RANGE_PRESETS.map((preset) => (
           <button
             key={preset}
@@ -42,7 +42,7 @@ export function DateRangeFilter() {
             onClick={() => apply({ range: preset })}
             aria-pressed={range.preset === preset}
             className={cn(
-              'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+              'rounded-full px-4 py-2 text-sm font-medium transition-colors',
               range.preset === preset
                 ? 'bg-accent text-accent-ink'
                 : 'text-ink-soft hover:bg-ground-sunk',
@@ -61,7 +61,7 @@ export function DateRangeFilter() {
             max={range.to}
             onChange={(event) => apply({ range: 'custom', from: event.target.value })}
             aria-label="From date"
-            className="border-line-strong rounded-lg border px-2.5 py-1.5 text-sm"
+            className="border-line-strong bg-surface rounded-full border px-3.5 py-2 text-sm"
           />
           <span className="text-ink-muted text-sm">to</span>
           <input
@@ -70,7 +70,7 @@ export function DateRangeFilter() {
             min={range.from}
             onChange={(event) => apply({ range: 'custom', to: event.target.value })}
             aria-label="To date"
-            className="border-line-strong rounded-lg border px-2.5 py-1.5 text-sm"
+            className="border-line-strong bg-surface rounded-full border px-3.5 py-2 text-sm"
           />
         </div>
       ) : null}

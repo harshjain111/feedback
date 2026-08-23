@@ -43,7 +43,7 @@ export function GuestFilters() {
   }
 
   return (
-    <div className="border-line bg-surface flex flex-wrap items-center gap-3 rounded-xl border p-3">
+    <div className="border-line bg-surface flex flex-wrap items-center gap-3 rounded-2xl border p-3">
       <div className="flex flex-wrap gap-1.5">
         {FILTERS.map((filter) => (
           <button

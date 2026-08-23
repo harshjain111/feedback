@@ -30,7 +30,12 @@ export default async function KioskIssuesPage() {
           </p>
         </header>
 
-        <IssuesForm issues={issues} copy={config.negative} continueLabel={config.rate.cta} />
+        <IssuesForm
+          issues={issues}
+          copy={config.negative}
+          commentCopy={config.comment}
+          continueLabel={config.rate.cta}
+        />
       </section>
     </KioskScreen>
   )

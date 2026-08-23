@@ -44,7 +44,7 @@ export function BackfillThemes() {
   }
 
   return (
-    <div className="border-line mt-4 rounded-xl border border-dashed p-3">
+    <div className="border-line mt-4 rounded-2xl border border-dashed p-3">
       <button
         type="button"
         onClick={run}

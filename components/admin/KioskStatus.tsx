@@ -30,7 +30,7 @@ export function KioskStatus({
           <li
             key={kiosk.label}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs',
+              'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs',
               online
                 ? 'border-[color:var(--color-good)]/40 text-[color:var(--color-good)]'
                 : 'border-[color:var(--color-bad)]/40 text-[color:var(--color-bad)]',
@@ -41,7 +41,7 @@ export function KioskStatus({
                 : 'This kiosk has never checked in.'
             }
           >
-            <Tablet size={12} strokeWidth={2} aria-hidden="true" />
+            <Tablet size={13} strokeWidth={2} aria-hidden="true" />
             {kiosk.label}
             <span className="font-medium">
               {online

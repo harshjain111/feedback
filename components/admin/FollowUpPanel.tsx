@@ -53,7 +53,7 @@ export function FollowUpPanel({
   const next = allowedTransitions(followUp.status)
 
   return (
-    <section className="border-line bg-surface rounded-xl border p-4">
+    <section className="border-line bg-surface rounded-2xl border p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h2 className="text-ink-muted text-xs font-semibold tracking-[0.14em] uppercase">

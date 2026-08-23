@@ -102,12 +102,18 @@ export function LovedForm({
             placeholder={commentCopy.placeholder}
             maxLength={2000}
             className="k-card bg-surface text-k-body text-ink placeholder:text-ink-muted/60 focus:border-accent min-h-0 w-full flex-1 resize-none outline-none"
-            style={{ padding: px(24) }}
+            /*
+             * Capped rather than free to fill: flex-1 alone gave the box 44% of a
+             * 960px screen, and a void that size reads as a broken layout rather
+             * than an invitation. 460 design px is still four or five comfortable
+             * lines, which is more than anyone types on a kiosk on their way out.
+             */
+            style={{ padding: px(24), maxHeight: px(460) }}
           />
         </div>
       </div>
 
-      <div className="shrink-0" style={{ paddingInline: px(44), paddingBlock: px(20) }}>
+      <div className="k-cta-dock shrink-0" style={{ paddingInline: px(44), paddingBlock: px(20) }}>
         <BigButton fullWidth className="k-cta" onClick={() => router.push('/contact')}>
           {continueLabel}
         </BigButton>

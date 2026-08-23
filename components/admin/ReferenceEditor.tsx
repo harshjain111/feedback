@@ -86,7 +86,7 @@ export function ReferenceEditor({
         </p>
       ) : null}
 
-      <div className="border-line bg-surface overflow-x-auto rounded-xl border">
+      <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
         <table className="w-full min-w-[680px] text-sm">
           <thead>
             <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">
@@ -174,7 +174,7 @@ export function ReferenceEditor({
 
       {!fixedRows && addLabel ? (
         adding ? (
-          <div className="border-line bg-surface flex flex-wrap items-end gap-3 rounded-xl border p-3">
+          <div className="border-line bg-surface flex flex-wrap items-end gap-3 rounded-2xl border p-3">
             {columns.map((column) => (
               <label key={column.key} className="flex flex-col gap-1">
                 <span className="text-ink-muted text-[11px] uppercase">{column.label}</span>

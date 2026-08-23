@@ -49,20 +49,21 @@ export default async function AdminGuestsPage({
   )
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <SectionHeading
         title="Guests"
         note={`${result.total} guest${result.total === 1 ? '' : 's'} · phone numbers are masked everywhere on this page.`}
+        level="page"
       />
 
       <GuestFilters />
 
       {result.items.length === 0 ? (
-        <div className="border-line text-ink-muted rounded-xl border border-dashed p-8 text-center text-sm">
+        <div className="border-line text-ink-muted rounded-2xl border border-dashed p-8 text-center text-sm">
           No guests match this filter. Guests are created when someone leaves a phone number.
         </div>
       ) : (
-        <div className="border-line bg-surface overflow-x-auto rounded-xl border">
+        <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
           <table className="w-full min-w-[820px] text-sm">
             <thead>
               <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">

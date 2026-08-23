@@ -38,6 +38,16 @@ export type TrendPoint = {
   count: number
 }
 
+/** One bar of the rating histogram — the shape an average hides (§25). */
+export type RatingBucket = {
+  value: number
+  label: string
+  colour: string
+  faceKey: string
+  count: number
+  pct: number
+}
+
 export type IssueCount = {
   issueId: string
   name: string

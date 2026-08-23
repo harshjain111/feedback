@@ -26,7 +26,7 @@ export default async function SettingsSystemPage() {
           title="Attention thresholds"
           note="What counts as a category needing attention, and how big a movement has to be before the dashboard mentions it."
         />
-        <div className="border-line bg-surface divide-line divide-y rounded-xl border p-4">
+        <div className="border-line bg-surface divide-line divide-y rounded-2xl border p-4">
           <ConfigField
             configKey="thresholds.category_attention"
             label="Needs attention below"
@@ -81,7 +81,7 @@ export default async function SettingsSystemPage() {
           title="Alerts"
           note="Alerts fire as feedback arrives, so someone can act while the guest is still in the building."
         />
-        <div className="border-line bg-surface divide-line divide-y rounded-xl border p-4">
+        <div className="border-line bg-surface divide-line divide-y rounded-2xl border p-4">
           <ConfigField
             configKey="alerts.rating_at_or_below"
             label="Alert on a rating at or below"
@@ -127,7 +127,7 @@ export default async function SettingsSystemPage() {
           title="Privacy"
           note="Phone numbers are optional for the guest and masked everywhere except a deliberate, logged reveal."
         />
-        <div className="border-line bg-surface divide-line divide-y rounded-xl border p-4">
+        <div className="border-line bg-surface divide-line divide-y rounded-2xl border p-4">
           <ConfigField
             configKey="privacy.consent_text"
             label="Consent text"
@@ -156,7 +156,7 @@ export default async function SettingsSystemPage() {
           title="Wallet reward"
           note="Out of scope for Phase 1 and shipped off. The journey already has the branch point, so switching this on later needs no change to the feedback flow."
         />
-        <div className="border-line bg-surface divide-line divide-y rounded-xl border p-4">
+        <div className="border-line bg-surface divide-line divide-y rounded-2xl border p-4">
           <ConfigField
             configKey="rewards.enabled"
             label="Rewards enabled"

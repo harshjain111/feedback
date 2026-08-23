@@ -147,7 +147,7 @@ export function ContentEditor({ config }: { config: AppConfig }) {
 
   return (
     <div className="space-y-4">
-      <div className="border-line bg-surface flex flex-wrap gap-1.5 rounded-xl border p-2">
+      <div className="border-line bg-surface flex flex-wrap gap-1.5 rounded-2xl border p-2">
         {SCREENS.map((screen) => (
           <button
             key={screen.id}
@@ -167,7 +167,7 @@ export function ContentEditor({ config }: { config: AppConfig }) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_auto]">
-        <div className="border-line bg-surface rounded-xl border p-4">
+        <div className="border-line bg-surface rounded-2xl border p-4">
           {active.note ? (
             <p className="bg-accent-soft text-accent mb-3 rounded-lg px-3 py-2 text-xs">
               {active.note}

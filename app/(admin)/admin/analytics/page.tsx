@@ -67,8 +67,9 @@ export default async function AdminAnalyticsPage({
         <SectionHeading
           title="Overall satisfaction"
           note="A day with no feedback is a gap in the line, never a zero."
+          level="page"
         />
-        <div className="border-line bg-surface rounded-xl border p-4">
+        <div className="border-line bg-surface rounded-2xl border p-4">
           <TrendChart points={overall} height={260} />
         </div>
       </section>
@@ -77,7 +78,7 @@ export default async function AdminAnalyticsPage({
         <SectionHeading title="By category" />
         <div className="grid gap-3 lg:grid-cols-2">
           {categoryTrends.map((series) => (
-            <div key={series.categoryId} className="border-line bg-surface rounded-xl border p-4">
+            <div key={series.categoryId} className="border-line bg-surface rounded-2xl border p-4">
               <h3 className="text-ink mb-2 text-sm font-semibold">{series.name}</h3>
               <TrendChart points={series.points} height={180} />
             </div>

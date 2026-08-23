@@ -79,7 +79,7 @@ function Panel({
       <h3 className="text-ink-muted mb-2 text-xs font-semibold tracking-[0.14em] uppercase">
         {title}
       </h3>
-      <ul className="border-line bg-surface divide-line divide-y rounded-xl border">
+      <ul className="border-line bg-surface divide-line divide-y rounded-2xl border">
         {rows.map((row) => (
           <Row key={row.label} {...row} minSample={minSample} max={max} />
         ))}

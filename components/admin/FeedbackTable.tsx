@@ -29,7 +29,7 @@ export function FeedbackTable({
 
   if (page.items.length === 0) {
     return (
-      <div className="border-line text-ink-muted rounded-xl border border-dashed p-8 text-center text-sm">
+      <div className="border-line text-ink-muted rounded-2xl border border-dashed p-8 text-center text-sm">
         No feedback matches these filters.
       </div>
     )
@@ -37,7 +37,7 @@ export function FeedbackTable({
 
   return (
     <div className="space-y-3">
-      <div className="border-line bg-surface overflow-x-auto rounded-xl border">
+      <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
         <table className="w-full min-w-[980px] text-sm">
           <thead>
             <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">

@@ -47,34 +47,34 @@ export function InsightCard({ insight, className }: { insight: Insight; classNam
   const Icon = tone.icon
 
   return (
-    <article className={cn('bg-surface rounded-xl border p-4', tone.border, className)}>
+    <article className={cn('bg-surface rounded-2xl border p-5', tone.border, className)}>
       <div className="flex items-start gap-3">
-        <span className={cn('mt-0.5 rounded-lg p-1.5', tone.chip)}>
-          <Icon size={15} strokeWidth={2} aria-hidden="true" />
+        <span className={cn('mt-0.5 rounded-xl p-2', tone.chip)}>
+          <Icon size={17} strokeWidth={2} aria-hidden="true" />
         </span>
 
         <div className="min-w-0 flex-1">
           {/* What happened */}
-          <h3 className="text-ink text-sm leading-snug font-semibold">{insight.title}</h3>
+          <h3 className="text-ink text-[15px] leading-snug font-semibold">{insight.title}</h3>
 
           {/* How significant, and which way it is moving */}
           <div className="mt-1.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="font-display text-ink text-xl tabular-nums">
+            <span className="font-display text-ink text-2xl tabular-nums">
               {insight.metric.value ?? '—'}
             </span>
             <DeltaBadge comparison={insight.metric} polarity={polarityFor(insight)} />
           </div>
 
           {/* Why */}
-          <p className="text-ink-soft mt-2 text-xs">{insight.evidence}</p>
+          <p className="text-ink-soft mt-2 text-sm">{insight.evidence}</p>
 
           {/* What next */}
           <Link
             href={insightHref(insight.filter)}
-            className="text-accent hover:text-accent-hover mt-3 inline-flex items-center gap-1 text-xs font-semibold"
+            className="text-accent hover:text-accent-hover mt-3 inline-flex items-center gap-1.5 text-sm font-semibold"
           >
-            VIEW FEEDBACK
-            <ArrowRight size={13} strokeWidth={2.4} aria-hidden="true" />
+            View feedback
+            <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
           </Link>
         </div>
       </div>
@@ -90,7 +90,7 @@ export function InsightCard({ insight, className }: { insight: Insight; classNam
  */
 export function InsightsEmpty({ message }: { message: string }) {
   return (
-    <div className="border-line bg-surface rounded-xl border border-dashed p-6 text-center">
+    <div className="border-line bg-surface rounded-2xl border border-dashed p-8 text-center">
       <p className="text-ink-soft text-sm">{message}</p>
     </div>
   )

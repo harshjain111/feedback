@@ -38,7 +38,7 @@ export function CategoryTable({
   range: DateRange
 }) {
   return (
-    <div className="border-line bg-surface overflow-x-auto rounded-xl border">
+    <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
       <table className="w-full min-w-[640px] text-sm">
         <thead>
           <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">

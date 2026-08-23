@@ -24,7 +24,7 @@ export function IssueTable({
 
   if (withMentions.length === 0) {
     return (
-      <div className="border-line text-ink-muted rounded-xl border border-dashed p-5 text-sm">
+      <div className="border-line text-ink-muted rounded-2xl border border-dashed p-5 text-sm">
         {kind === 'negative'
           ? 'No issues were raised in this period.'
           : 'No highlights were picked in this period.'}
@@ -33,7 +33,7 @@ export function IssueTable({
   }
 
   return (
-    <ul className="border-line bg-surface divide-line divide-y rounded-xl border">
+    <ul className="border-line bg-surface divide-line divide-y rounded-2xl border">
       {withMentions.map((issue) => (
         <li key={issue.issueId}>
           <Link

@@ -25,14 +25,14 @@ function ThemeList({
 }) {
   if (themes.length === 0) {
     return (
-      <div className="border-line text-ink-muted rounded-xl border border-dashed p-5 text-sm">
+      <div className="border-line text-ink-muted rounded-2xl border border-dashed p-5 text-sm">
         {emptyMessage}
       </div>
     )
   }
 
   return (
-    <ul className="border-line bg-surface divide-line divide-y rounded-xl border">
+    <ul className="border-line bg-surface divide-line divide-y rounded-2xl border">
       {themes.map((theme) => (
         <li key={theme.themeId}>
           <Link

@@ -10,6 +10,7 @@ import type {
   CategoryStatus,
   IssueCount,
   Kpis,
+  RatingBucket,
   ThemeCount,
   TodaySnapshot,
   TrendPoint,
@@ -225,6 +226,62 @@ export async function getTrend(range: DateRange): Promise<TrendPoint[]> {
       date,
       value: row?.avg_score === null || row?.avg_score === undefined ? null : Number(row.avg_score),
       count: row?.feedback_count ?? 0,
+    }
+  })
+}
+
+/**
+ * How the five faces were actually pressed across the range (§25).
+ *
+ * The companion to getTrend. An average of 3.0 can be a room full of shrugs or
+ * a room split between delight and fury, and those are not the same café — the
+ * distribution is the only thing on the dashboard that tells them apart.
+ *
+ * Labels and colours come from rating_scale rather than being hard-coded, so a
+ * café that renames "Okay" or shifts the ramp in settings sees the change here
+ * too (§3).
+ */
+export async function getRatingDistribution(range: DateRange): Promise<RatingBucket[]> {
+  const client = await db()
+  const outlet = await outletId()
+
+  const [{ data: rows, error }, { data: scale, error: scaleError }] = await Promise.all([
+    client
+      .from('v_rating_distribution_daily')
+      .select('rating, rating_count')
+      .eq('outlet_id', outlet)
+      .gte('local_date', range.from)
+      .lte('local_date', range.to),
+    client
+      .from('rating_scale')
+      .select('value, label, colour, face_key')
+      .eq('outlet_id', outlet)
+      .order('value'),
+  ])
+
+  if (error) throw new Error(`Rating distribution failed: ${error.message}`)
+  if (scaleError) throw new Error(`Rating scale read failed: ${scaleError.message}`)
+
+  // One row per (day, rating) comes back; fold the days away.
+  const counts = new Map<number, number>()
+  for (const row of rows ?? []) {
+    if (row.rating === null) continue
+    counts.set(row.rating, (counts.get(row.rating) ?? 0) + Number(row.rating_count ?? 0))
+  }
+
+  const total = [...counts.values()].reduce((sum, count) => sum + count, 0)
+
+  return (scale ?? []).map((step) => {
+    const count = counts.get(step.value) ?? 0
+    return {
+      value: step.value,
+      label: step.label,
+      colour: step.colour,
+      faceKey: step.face_key,
+      count,
+      // Percent of ratings given, not of feedbacks — one guest rates four
+      // categories, so these are four data points, not one.
+      pct: total === 0 ? 0 : Math.round((count / total) * 1000) / 10,
     }
   })
 }

@@ -259,6 +259,45 @@ describe('v_guest_summary', () => {
   })
 })
 
+describe('v_rating_distribution_daily', () => {
+  it('accounts for every rating exactly once', async () => {
+    // The donut on the dashboard is only trustworthy if its slices add up to
+    // the number of ratings actually given — an off-by-one here would be
+    // invisible on screen and wrong in every reading of it.
+    const total = await one<{ facts: string; distributed: string }>(
+      ctx.db,
+      `select
+         (select count(*) from v_rating_facts) as facts,
+         (select coalesce(sum(rating_count), 0) from v_rating_distribution_daily) as distributed`,
+    )
+    expect(Number(total.distributed)).toBe(Number(total.facts))
+    expect(Number(total.facts)).toBeGreaterThan(0)
+    await ctx.db.close()
+  })
+
+  it('keeps the five values apart, and keeps days apart', async () => {
+    const byValue = await rows<{ rating: number; rating_count: string }>(
+      ctx.db,
+      `select rating, sum(rating_count) as rating_count
+       from v_rating_distribution_daily group by rating order by rating`,
+    )
+
+    // Every bucket present must be a real point on the 1..5 scale.
+    for (const bucket of byValue) {
+      expect(bucket.rating).toBeGreaterThanOrEqual(1)
+      expect(bucket.rating).toBeLessThanOrEqual(5)
+    }
+
+    const days = await rows<{ local_date: string }>(
+      ctx.db,
+      `select distinct local_date from v_rating_distribution_daily order by local_date`,
+    )
+    expect(days.length).toBeGreaterThan(1)
+
+    await ctx.db.close()
+  })
+})
+
 describe('views respect RLS — security_invoker, not definer', () => {
   it('hides another outlet’s rows from an admin of this one', async () => {
     await asServiceRole(ctx.db)
@@ -299,6 +338,7 @@ describe('views respect RLS — security_invoker, not definer', () => {
     await asAnon(ctx.db)
     expect(await isDenied(ctx.db.query(`select * from v_feedback_daily`))).toBe(true)
     expect(await isDenied(ctx.db.query(`select * from v_guest_summary`))).toBe(true)
+    expect(await isDenied(ctx.db.query(`select * from v_rating_distribution_daily`))).toBe(true)
     await ctx.db.close()
   })
 })

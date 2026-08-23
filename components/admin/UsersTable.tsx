@@ -56,7 +56,7 @@ export function UsersTable({
       ) : null}
 
       {issued ? (
-        <div className="rounded-xl border border-[color:var(--color-good)]/40 bg-[color:var(--color-good)]/5 p-3">
+        <div className="rounded-2xl border border-[color:var(--color-good)]/40 bg-[color:var(--color-good)]/5 p-4">
           <p className="text-ink text-sm font-medium">Account created for {issued.email}</p>
           <p className="text-ink-soft mt-1 text-xs">
             Temporary password: <code className="font-mono">{issued.password}</code>
@@ -67,7 +67,7 @@ export function UsersTable({
         </div>
       ) : null}
 
-      <div className="border-line bg-surface overflow-x-auto rounded-xl border">
+      <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">
@@ -151,7 +151,7 @@ export function UsersTable({
       </div>
 
       {inviting ? (
-        <div className="border-line bg-surface flex flex-wrap items-end gap-3 rounded-xl border p-3">
+        <div className="border-line bg-surface flex flex-wrap items-end gap-3 rounded-2xl border p-3">
           <label className="flex flex-col gap-1">
             <span className="text-ink-muted text-[11px] uppercase">Name</span>
             <input

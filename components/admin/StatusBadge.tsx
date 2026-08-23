@@ -19,7 +19,7 @@ export function StatusBadge({ status, className }: { status: string; className?:
   return (
     <span
       className={cn(
-        'inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-wide',
+        'inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide',
         TONE[status] ?? 'bg-ground-sunk text-ink-soft',
         className,
       )}

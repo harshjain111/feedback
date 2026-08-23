@@ -29,7 +29,7 @@ export default async function SettingsRatingScalePage() {
         note="The face is the primary interaction, and colour has to register before the label does."
       />
 
-      <div className="border-line bg-surface rounded-xl border p-6">
+      <div className="border-line bg-surface rounded-2xl border p-6">
         <div className="flex items-start justify-between gap-4">
           {scale.map((face) => (
             <div key={face.scale_id} className="flex flex-col items-center gap-2">

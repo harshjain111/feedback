@@ -969,6 +969,15 @@ export type Database = {
         }
         Relationships: []
       }
+      v_rating_distribution_daily: {
+        Row: {
+          outlet_id: string | null
+          local_date: string | null
+          rating: number | null
+          rating_count: number | null
+        }
+        Relationships: []
+      }
       v_rating_facts: {
         Row: {
           outlet_id: string | null

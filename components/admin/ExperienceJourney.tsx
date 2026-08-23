@@ -57,7 +57,7 @@ export function ExperienceJourney({ scoresOldestFirst }: { scoresOldestFirst: (n
           .join(' ')
 
   return (
-    <section className="border-line bg-surface rounded-xl border p-4">
+    <section className="border-line bg-surface rounded-2xl border p-4">
       <h2 className="text-ink-muted mb-3 text-xs font-semibold tracking-[0.14em] uppercase">
         Experience journey
       </h2>

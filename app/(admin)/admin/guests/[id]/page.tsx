@@ -40,8 +40,8 @@ export default async function AdminGuestProfilePage({
         Back to guests
       </Link>
 
-      <header className="border-line bg-surface rounded-xl border p-4">
-        <h1 className="font-display text-ink text-2xl">{guest.name ?? guest.guestCode}</h1>
+      <header className="border-line bg-surface rounded-2xl border p-4">
+        <h1 className="font-display text-ink text-3xl">{guest.name ?? guest.guestCode}</h1>
         <p className="text-ink-muted mt-1 text-sm">{guest.guestCode}</p>
 
         <dl className="border-line mt-4 grid gap-4 border-t pt-4 sm:grid-cols-4">
@@ -74,7 +74,7 @@ export default async function AdminGuestProfilePage({
 
       <ExperienceJourney scoresOldestFirst={chronological.map((visit) => visit.overallScore)} />
 
-      <section className="border-line bg-surface rounded-xl border p-4">
+      <section className="border-line bg-surface rounded-2xl border p-4">
         <h2 className="text-ink-muted mb-3 text-xs font-semibold tracking-[0.14em] uppercase">
           By category
         </h2>
@@ -92,7 +92,7 @@ export default async function AdminGuestProfilePage({
 
       <section>
         <SectionHeading title="Visit history" />
-        <div className="border-line bg-surface overflow-x-auto rounded-xl border">
+        <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
           <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">

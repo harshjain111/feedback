@@ -68,7 +68,11 @@ export default async function AdminReportsPage({
   return (
     <div className="max-w-4xl space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3 print:hidden">
-        <SectionHeading title="Reports" note="Everything on this page prints cleanly." />
+        <SectionHeading
+          title="Reports"
+          note="Everything on this page prints cleanly."
+          level="page"
+        />
         <div className="flex gap-2">
           {can(user, 'export:data') ? <ExportButton range={range} /> : null}
           <PrintButton />
@@ -89,7 +93,7 @@ export default async function AdminReportsPage({
 
       <section>
         <SectionHeading title="Headline" note={kpis.overall.label} />
-        <div className="border-line bg-surface grid grid-cols-2 gap-4 rounded-xl border p-4 sm:grid-cols-4">
+        <div className="border-line bg-surface grid grid-cols-2 gap-4 rounded-2xl border p-5 sm:grid-cols-4">
           <Figure
             label="Feedbacks"
             value={kpis.feedbackCount.value}

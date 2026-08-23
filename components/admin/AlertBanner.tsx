@@ -81,7 +81,7 @@ export function AlertBanner() {
         <div
           key={alert.alert_id}
           className={cn(
-            'flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3',
+            'flex flex-wrap items-center gap-3 rounded-2xl border px-5 py-4',
             alert.severity === 'critical'
               ? 'border-[color:var(--color-bad)]/45 bg-[color:var(--color-bad)]/5'
               : 'border-[color:var(--color-warn)]/45 bg-[color:var(--color-warn)]/5',

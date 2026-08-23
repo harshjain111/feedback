@@ -71,10 +71,11 @@ export default async function AdminFeedbackPage({
   ).toString()
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <SectionHeading
         title="Feedback"
         note={`${range.from} to ${range.to} · every filter is in the URL, so this view is shareable.`}
+        level="page"
       />
 
       <Suspense fallback={null}>

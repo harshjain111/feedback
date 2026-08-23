@@ -19,7 +19,7 @@ export default async function SettingsBrandingPage() {
         note="These feed the footer on every kiosk screen. An empty URL renders the label as plain text rather than a dead link."
       />
 
-      <div className="border-line bg-surface divide-line divide-y rounded-xl border p-4">
+      <div className="border-line bg-surface divide-line divide-y rounded-2xl border p-4">
         <ConfigField configKey="branding.name" label="Café name" value={config.branding.name} />
         <ConfigField
           configKey="branding.website_url"
@@ -44,7 +44,7 @@ export default async function SettingsBrandingPage() {
         />
       </div>
 
-      <div className="border-line bg-surface divide-line divide-y rounded-xl border p-4">
+      <div className="border-line bg-surface divide-line divide-y rounded-2xl border p-4">
         <p className="text-ink-muted pb-2 text-xs">Footer labels</p>
         <ConfigField configKey="footer.brand" label="Brand" value={config.footer.brand} />
         <ConfigField

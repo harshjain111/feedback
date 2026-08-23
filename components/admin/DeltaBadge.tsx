@@ -23,7 +23,7 @@ export function DeltaBadge({
 
   if (delta === null) {
     return (
-      <span className={cn('text-ink-muted text-xs', className)}>
+      <span className={cn('text-ink-muted text-[13px]', className)}>
         no comparison — {comparison.previous === null ? 'no earlier data' : label}
       </span>
     )
@@ -44,8 +44,10 @@ export function DeltaBadge({
     deltaPct === null ? `${delta > 0 ? '+' : ''}${delta}` : `${deltaPct > 0 ? '+' : ''}${deltaPct}%`
 
   return (
-    <span className={cn('inline-flex items-center gap-1 text-xs font-medium', tone, className)}>
-      <Icon size={13} strokeWidth={2.4} aria-hidden="true" />
+    <span
+      className={cn('inline-flex items-center gap-1 text-[13px] font-semibold', tone, className)}
+    >
+      <Icon size={14} strokeWidth={2.4} aria-hidden="true" />
       <span>{magnitude}</span>
       <span className="text-ink-muted font-normal">{label}</span>
     </span>

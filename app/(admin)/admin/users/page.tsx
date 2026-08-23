@@ -39,6 +39,7 @@ export default async function AdminUsersPage() {
       <SectionHeading
         title="Users"
         note="Roles are enforced by the database, not just by what this page shows. Hiding a link never grants or denies anything on its own."
+        level="page"
       />
 
       <UsersTable
@@ -50,7 +51,7 @@ export default async function AdminUsersPage() {
 
       <section>
         <SectionHeading title="What each role can do" />
-        <div className="border-line bg-surface overflow-x-auto rounded-xl border">
+        <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
           <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">

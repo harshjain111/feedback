@@ -85,7 +85,7 @@ export function CommentForm({
         </div>
       </div>
 
-      <div className="shrink-0" style={{ paddingInline: px(48), paddingBottom: px(20) }}>
+      <div className="k-cta-dock shrink-0" style={{ paddingInline: px(48), paddingBottom: px(20) }}>
         <BigButton fullWidth className="k-cta" onClick={() => router.push('/contact')}>
           {continueLabel}
         </BigButton>
