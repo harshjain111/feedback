@@ -87,6 +87,44 @@ export async function one<T>(db: Db, sql: string, params: unknown[] = []): Promi
   return row
 }
 
+/**
+ * Impersonate a signed-in app user for the rest of the session.
+ *
+ * Sets the JWT claim our auth.uid() stub reads, then drops to the
+ * `authenticated` database role so RLS actually applies — as the owning role,
+ * policies would be bypassed and every test would pass for the wrong reason.
+ */
+export async function asUser(db: Db, userId: string): Promise<void> {
+  await db.exec(`reset role;`)
+  await db.exec(`select set_config('request.jwt.claim.sub', '${userId}', false);`)
+  await db.exec(`select set_config('request.jwt.claim.role', 'authenticated', false);`)
+  await db.exec(`set role authenticated;`)
+}
+
+/** Become the anonymous kiosk visitor. */
+export async function asAnon(db: Db): Promise<void> {
+  await db.exec(`reset role;`)
+  await db.exec(`select set_config('request.jwt.claim.sub', '', false);`)
+  await db.exec(`select set_config('request.jwt.claim.role', 'anon', false);`)
+  await db.exec(`set role anon;`)
+}
+
+/** Back to the owner — used for fixture setup, and stands in for service_role. */
+export async function asServiceRole(db: Db): Promise<void> {
+  await db.exec(`reset role;`)
+  await db.exec(`select set_config('request.jwt.claim.sub', '', false);`)
+}
+
+/** True when the statement was refused (either by a policy or by a grant). */
+export async function isDenied(promise: Promise<unknown>): Promise<boolean> {
+  try {
+    await promise
+    return false
+  } catch {
+    return true
+  }
+}
+
 /** The seeded outlet, which almost every test needs. */
 export async function outletId(db: Db): Promise<string> {
   const row = await one<{ outlet_id: string }>(
