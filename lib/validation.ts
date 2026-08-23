@@ -1,4 +1,7 @@
 import { z } from 'zod'
+import { INDIAN_MOBILE, normalisePhone } from './phone'
+
+export { INDIAN_MOBILE, isValidPhone, normalisePhone } from './phone'
 
 /**
  * Shared validation — CLAUDE.md §5, §7.
@@ -8,21 +11,6 @@ import { z } from 'zod'
  * and name are optional always (§11), and validation only has an opinion once
  * the guest has actually typed something.
  */
-
-/** 10 digits, starting 6–9. Indian mobile numbering. */
-export const INDIAN_MOBILE = /^[6-9]\d{9}$/
-
-/** Strip spaces, dashes and a +91 / 0 prefix before validating or storing. */
-export function normalisePhone(input: string): string {
-  const digits = input.replace(/[^\d]/g, '')
-  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2)
-  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1)
-  return digits
-}
-
-export function isValidPhone(input: string): boolean {
-  return INDIAN_MOBILE.test(normalisePhone(input))
-}
 
 /** Empty is fine. Anything typed must be a real mobile number. */
 export const optionalPhoneSchema = z

@@ -12,6 +12,17 @@ import { getConfig } from '@/lib/config'
  * back in for itself when the on-screen keyboard appears.
  */
 
+/**
+ * Never statically prerendered.
+ *
+ * Every string on every kiosk screen comes from app_config, so a build-time
+ * prerender would bake today's copy into the HTML and a CMS edit would need a
+ * redeploy to appear — which is exactly what §3 and the Prompt 35 checkpoint
+ * forbid. Rendering per request costs nothing here: getConfig() is behind a 60s
+ * cache, so the database is hit at most once a minute regardless of traffic.
+ */
+export const dynamic = 'force-dynamic'
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,

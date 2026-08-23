@@ -5,7 +5,9 @@ import { useEffect, useState } from 'react'
 import { BigButton } from './BigButton'
 import type { AppConfig } from '@/lib/config.types'
 import { getDraft, patchDraft } from '@/lib/session'
-import { isValidPhone } from '@/lib/validation'
+// From lib/phone, not lib/validation: the latter imports zod, which has no
+// business in the kiosk bundle (§6).
+import { isValidPhone } from '@/lib/phone'
 
 /**
  * Name and mobile number — BOTH optional, always (§5, §11).
