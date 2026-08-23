@@ -1,9 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { InsightCard, InsightsEmpty } from '@/components/admin/InsightCard'
+import { KpiCard } from '@/components/admin/KpiCard'
 import { BigButton } from '@/components/kiosk/BigButton'
 import { Chip } from '@/components/kiosk/Chip'
 import { FaceIcon } from '@/components/kiosk/FaceIcon'
+import { compare } from '@/lib/analytics/comparison'
+import type { Insight } from '@/lib/analytics/insights'
 import type { FaceKey } from '@/lib/config.types'
 
 /**
@@ -56,6 +60,49 @@ const TYPE = [
     cls: 'text-k-micro font-sans',
     label: 'k-micro / 20px — the floor',
     sample: 'Optional — you can skip this step.',
+  },
+]
+
+const SAMPLE_INSIGHTS: Insight[] = [
+  {
+    id: 'sample-1',
+    type: 'CATEGORY_DROP',
+    severity: 'critical',
+    title: 'Service satisfaction has dropped sharply',
+    metric: compare(3.2, 4.1, 'vs previous 7 days'),
+    evidence: 'Main issue: Waiting Time — 23 mentions, up from 9. Worst between 8 PM and 10 PM.',
+    filter: { categoryId: 'sample', ratingBand: 'negative' },
+    score: 22,
+  },
+  {
+    id: 'sample-2',
+    type: 'LOW_RATING_CLUSTER',
+    severity: 'warning',
+    title: '3 guests rated Service 1 out of 5 in the last 45 minutes',
+    metric: compare(3, 0, 'vs the same window yesterday'),
+    evidence: 'All three left a comment. Two asked to be followed up.',
+    filter: { ratingBand: 'negative' },
+    score: 14,
+  },
+  {
+    id: 'sample-3',
+    type: 'THEME_EMERGING',
+    severity: 'info',
+    title: '"Cold Food" is appearing more often in comments',
+    metric: compare(11, 4, 'vs previous 7 days'),
+    evidence: '11 mentions across 9 feedbacks, mostly on weekday evenings.',
+    filter: { themeId: 'sample' },
+    score: 8,
+  },
+  {
+    id: 'sample-4',
+    type: 'CATEGORY_STRONG',
+    severity: 'positive',
+    title: 'Hospitality is your strongest category and still climbing',
+    metric: compare(4.8, 4.5, 'vs previous 7 days'),
+    evidence: '"Our Team" was the most chosen thing guests loved — 62 mentions.',
+    filter: { categoryId: 'sample', ratingBand: 'positive' },
+    score: 6,
   },
 ]
 
@@ -231,6 +278,51 @@ export default function StyleguidePage() {
               />
             ),
           )}
+        </div>
+      </Section>
+
+      <Section
+        title="Admin — KPI cards"
+        note="The admin scale is ordinary desktop UI: dense, information-first, the opposite brief to the kiosk. A KpiCard takes a Comparison rather than a number, so the bare-number failure mode of §9 is not expressible."
+      >
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <KpiCard
+            label="Overall experience"
+            comparison={compare(4.1, 4.6, 'vs previous 7 days')}
+            format="rating"
+            attentionBelow={4.5}
+          />
+          <KpiCard
+            label="Service"
+            comparison={compare(3.2, 4.1, 'vs previous 7 days')}
+            format="rating"
+            attentionBelow={3.5}
+          />
+          <KpiCard
+            label="Complaint rate"
+            comparison={compare(18.5, 11.2, 'vs previous 7 days')}
+            format="percent"
+            polarity="lower-is-better"
+          />
+          <KpiCard
+            label="Feedback today"
+            comparison={compare(null, null, 'vs yesterday')}
+            footnote="An empty period reads as no data, never as zero."
+          />
+        </div>
+      </Section>
+
+      <Section
+        title="Admin — Insight cards"
+        note="The system writes these, not a person. Each answers what happened, how significant, which way it is moving, why, and what to look at next — and the last one is a link into a pre-filtered feedback list, not a sentence."
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          {SAMPLE_INSIGHTS.map((insight) => (
+            <InsightCard key={insight.id} insight={insight} />
+          ))}
+        </div>
+        <div className="mt-4 max-w-xl">
+          <InsightsEmpty message="Nothing needs attention right now. 34 feedbacks today, none below 3." />
         </div>
       </Section>
 
