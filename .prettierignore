@@ -1,0 +1,10 @@
+node_modules/
+.next/
+pnpm-lock.yaml
+
+# The spec is the source of truth. Never reformat it.
+CLAUDE.md
+*.md
+
+# Generated.
+types/database.ts
