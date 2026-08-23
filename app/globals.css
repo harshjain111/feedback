@@ -1,3 +1,115 @@
 @import 'tailwindcss';
 
-/* Design tokens land here in Prompt 06. */
+/* =============================================================================
+   All India Café — visual foundation (CLAUDE.md §6)
+
+   Ivory ground, deep ink, one warm accent. Premium Indian hospitality without
+   clip-art: the warmth comes from the paper colour and the serif, not from
+   ornament. No gradients as decoration, no ambient drop shadows.
+
+   Two type scales live here on purpose. The kiosk scale (k-*) is sized for a
+   1080x1920 screen read standing up at arm's length — nothing below 20px. The
+   admin scale is ordinary desktop UI: dense and information-first, the opposite
+   brief.
+   ============================================================================ */
+
+@theme {
+  /* --- Ground and ink ----------------------------------------------------- */
+  --color-ground: #fbf8f2; /* ivory paper */
+  --color-ground-sunk: #f4efe5; /* recessed panels */
+  --color-surface: #ffffff;
+  --color-ink: #1b1512; /* headings, primary text */
+  --color-ink-soft: #4a3f38; /* body */
+  --color-ink-muted: #7d6f64; /* supporting lines, labels */
+  --color-line: #e6dccd; /* hairlines, chip borders */
+  --color-line-strong: #d3c5b0;
+
+  /* --- The single warm accent --------------------------------------------- */
+  --color-accent: #a8482a; /* terracotta */
+  --color-accent-hover: #8f3c22;
+  --color-accent-soft: #f6e7df;
+  --color-accent-ink: #ffffff;
+
+  /* --- Rating ramp (§5). Mirrors the seeded rating_scale rows; components
+         still take their colour as a prop from the database. ---------------- */
+  --color-rating-1: #e63329;
+  --color-rating-2: #f07829;
+  --color-rating-3: #f5c518;
+  --color-rating-4: #8dc63f;
+  --color-rating-5: #39b54a;
+
+  /* --- Admin status ------------------------------------------------------- */
+  --color-good: #2f7d4f;
+  --color-warn: #b8791f;
+  --color-bad: #b3261e;
+
+  /* --- Type --------------------------------------------------------------- */
+  --font-display: var(--font-fraunces), 'Iowan Old Style', Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Kiosk scale — H1 >= 56px, body >= 24px, floor 20px (§6) */
+  --text-k-display: 88px;
+  --text-k-display--line-height: 1;
+  --text-k-display--letter-spacing: -0.02em;
+  --text-k-h1: 64px;
+  --text-k-h1--line-height: 1.06;
+  --text-k-h1--letter-spacing: -0.015em;
+  --text-k-h2: 44px;
+  --text-k-h2--line-height: 1.15;
+  --text-k-h3: 34px;
+  --text-k-h3--line-height: 1.2;
+  --text-k-lead: 30px;
+  --text-k-lead--line-height: 1.4;
+  --text-k-body: 26px;
+  --text-k-body--line-height: 1.5;
+  --text-k-small: 22px;
+  --text-k-small--line-height: 1.45;
+  --text-k-micro: 20px; /* the floor — never go under this on the kiosk */
+  --text-k-micro--line-height: 1.4;
+
+  /* --- Motion — premium and immediate, never bouncy (§6) ------------------- */
+  --ease-kiosk: cubic-bezier(0.2, 0, 0.1, 1);
+  --duration-kiosk: 180ms;
+
+  /* --- Radii -------------------------------------------------------------- */
+  --radius-chip: 999px;
+  --radius-card: 20px;
+  --radius-button: 16px;
+}
+
+/* -----------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+html,
+body {
+  background-color: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Kiosk hardening (§6). Scoped to the kiosk shell so the admin app keeps normal
+   desktop behaviour — text selection there is a feature, not a bug. */
+.kiosk-root {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+.kiosk-root input,
+.kiosk-root textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
