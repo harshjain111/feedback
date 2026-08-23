@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { AlertBanner } from '@/components/admin/AlertBanner'
 import { HighlightCard } from '@/components/admin/HighlightCard'
 import { InsightCard, InsightsEmpty } from '@/components/admin/InsightCard'
 import { KpiCard } from '@/components/admin/KpiCard'
@@ -49,6 +50,9 @@ export default async function AdminTodayPage({
 
   return (
     <div className="space-y-8">
+      {/* Above everything: something is going wrong right now (§27). */}
+      <AlertBanner />
+
       {/* 1 — the headline numbers, each against its previous period */}
       <section>
         <SectionHeading title="Experience" note={kpis.overall.label} />

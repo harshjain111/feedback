@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
+import { evaluateAlerts } from '@/lib/alerts'
 import { extractThemes } from '@/lib/analytics/themes'
-import { getOutletId, getThemeLexicon } from '@/lib/config'
+import { getCategories, getConfig, getOutletId, getThemeLexicon } from '@/lib/config'
 import { overallScore, ratingValues, sentimentFor } from '@/lib/journey'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { allowOfflineSeedFallback } from '@/lib/supabase/env'
@@ -196,19 +197,29 @@ export async function POST(request: Request): Promise<Response> {
       // here ever writes that column.
     }
 
-    // --- alerts --------------------------------------------------------------
-    // Prompt 31 implements the real evaluator. Deliberately a no-op rather than
-    // a half-rule, so nobody mistakes a placeholder for working alerting.
-    await evaluateAlerts()
+    // --- alerts (§27) --------------------------------------------------------
+    // After the row is committed, and non-throwing: a broken alert rule must
+    // never cost a guest their submission.
+    const [config, categories] = await Promise.all([getConfig(), getCategories()])
+    const categoryNames = new Map(categories.map((c) => [c.category_id, c.name]))
+
+    await evaluateAlerts({
+      db,
+      outletId,
+      feedbackId,
+      config,
+      ratings: Object.entries(submission.ratings).map(([categoryId, rating]) => ({
+        categoryId,
+        categoryName: categoryNames.get(categoryId) ?? 'a category',
+        rating,
+      })),
+      followUpRequested: submission.followUpRequested === true,
+      guestName: submission.name.trim() === '' ? null : submission.name.trim(),
+    })
 
     return NextResponse.json({ feedbackCode: feedback.feedback_code })
   } catch (error) {
     console.error('[feedback] submit failed:', error)
     return NextResponse.json({ error: 'Could not record feedback' }, { status: 500 })
   }
-}
-
-/** Stub — real triggers, thresholds and dedupe land in Prompt 31. */
-async function evaluateAlerts(): Promise<void> {
-  return
 }
