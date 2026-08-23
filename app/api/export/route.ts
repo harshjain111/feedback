@@ -59,7 +59,12 @@ export async function GET(request: Request): Promise<Response> {
       .select('category_id, name, display_order')
       .eq('outlet_id', user!.outletId)
       .order('display_order'),
-    client.from('v_rating_facts').select('feedback_id, category_id, rating, local_date').eq('outlet_id', user!.outletId).gte('local_date', from).lte('local_date', to),
+    client
+      .from('v_rating_facts')
+      .select('feedback_id, category_id, rating, local_date')
+      .eq('outlet_id', user!.outletId)
+      .gte('local_date', from)
+      .lte('local_date', to),
     client
       .from('v_issue_daily')
       .select('issue_id, local_date, mention_count')
@@ -69,7 +74,9 @@ export async function GET(request: Request): Promise<Response> {
     client.from('guests').select('*').eq('outlet_id', user!.outletId),
     client
       .from('v_follow_up_facts')
-      .select('follow_up_id, feedback_id, status, local_date, created_at, resolved_at, resolution_hours')
+      .select(
+        'follow_up_id, feedback_id, status, local_date, created_at, resolved_at, resolution_hours',
+      )
       .eq('outlet_id', user!.outletId)
       .gte('local_date', from)
       .lte('local_date', to),
@@ -220,7 +227,10 @@ export async function GET(request: Request): Promise<Response> {
     { header: 'Neutral', key: 'neutral', width: 10 },
     { header: 'Negative', key: 'negative', width: 10 },
   ])
-  const perDayCategory = new Map<string, { total: number; count: number; pos: number; neu: number; neg: number }>()
+  const perDayCategory = new Map<
+    string,
+    { total: number; count: number; pos: number; neu: number; neg: number }
+  >()
   for (const fact of ratings.data ?? []) {
     if (!fact.local_date || !fact.category_id || fact.rating === null) continue
     const key = `${fact.local_date}|${fact.category_id}`
@@ -258,7 +268,10 @@ export async function GET(request: Request): Promise<Response> {
   const issueTotals = new Map<string, number>()
   for (const row of issues.data ?? []) {
     if (!row.issue_id) continue
-    issueTotals.set(row.issue_id, (issueTotals.get(row.issue_id) ?? 0) + Number(row.mention_count ?? 0))
+    issueTotals.set(
+      row.issue_id,
+      (issueTotals.get(row.issue_id) ?? 0) + Number(row.mention_count ?? 0),
+    )
   }
   for (const [issueId, mentions] of [...issueTotals.entries()].sort((a, b) => b[1] - a[1])) {
     const issue = issueNameById.get(issueId)

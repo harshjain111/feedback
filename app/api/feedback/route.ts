@@ -61,6 +61,33 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const outletId = await getOutletId()
+    const config = await getConfig()
+
+    // --- rate limit (§42) ----------------------------------------------------
+    // Keyed on the kiosk when the tablet knows which it is, otherwise on the
+    // forwarded IP. A café's tablets share one connection, so IP alone is a
+    // poor key; the thing worth bounding is how fast one terminal can write.
+    const kioskKey =
+      submission.kioskId ??
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      'unknown'
+
+    const { data: withinBudget, error: budgetError } = await db.rpc('aic_consume_write_budget', {
+      p_outlet: outletId,
+      p_kiosk_key: kioskKey,
+      p_limit: config.kiosk.max_writes_per_minute,
+    })
+
+    if (budgetError) {
+      // Never let the limiter itself take the kiosk down — a guest losing their
+      // feedback to a failed counter is a worse outcome than an unbounded write.
+      console.error('[feedback] rate limiter unavailable, allowing:', budgetError.message)
+    } else if (withinBudget === false) {
+      return NextResponse.json(
+        { error: 'Too many submissions from this kiosk. Try again in a moment.' },
+        { status: 429, headers: { 'Retry-After': '60' } },
+      )
+    }
 
     // --- idempotency: has this exact journey already landed? -----------------
     const { data: existing } = await db
@@ -200,7 +227,7 @@ export async function POST(request: Request): Promise<Response> {
     // --- alerts (§27) --------------------------------------------------------
     // After the row is committed, and non-throwing: a broken alert rule must
     // never cost a guest their submission.
-    const [config, categories] = await Promise.all([getConfig(), getCategories()])
+    const categories = await getCategories()
     const categoryNames = new Map(categories.map((c) => [c.category_id, c.name]))
 
     await evaluateAlerts({

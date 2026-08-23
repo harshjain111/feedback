@@ -65,6 +65,7 @@ export const CONFIG_DEFAULTS: AppConfig = {
   },
   kiosk: {
     idle_seconds: 90,
+    max_writes_per_minute: 15,
     thanks_seconds: 8,
   },
   negative: {

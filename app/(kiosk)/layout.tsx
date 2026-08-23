@@ -1,6 +1,7 @@
 import type { Viewport } from 'next'
 import { IdleResetProvider } from '@/components/kiosk/IdleResetProvider'
 import { KioskFooter } from '@/components/kiosk/KioskFooter'
+import { KioskHeartbeat } from '@/components/kiosk/KioskHeartbeat'
 import { getConfig } from '@/lib/config'
 
 /**
@@ -40,6 +41,7 @@ export default async function KioskLayout({ children }: { children: React.ReactN
     // comment screen opts its own textarea back in when the keyboard appears.
     <div className="kiosk-root bg-ground flex h-dvh justify-center overflow-hidden">
       <div className="flex h-dvh w-full max-w-[1080px] flex-col overflow-hidden">
+        <KioskHeartbeat />
         <IdleResetProvider idleSeconds={config.kiosk.idle_seconds}>
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>
           <KioskFooter config={config} />

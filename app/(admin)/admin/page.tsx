@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { AlertBanner } from '@/components/admin/AlertBanner'
 import { HighlightCard } from '@/components/admin/HighlightCard'
 import { InsightCard, InsightsEmpty } from '@/components/admin/InsightCard'
+import { KioskStatus } from '@/components/admin/KioskStatus'
 import { KpiCard } from '@/components/admin/KpiCard'
 import { SectionHeading } from '@/components/admin/SectionHeading'
 import { SnapshotStrip } from '@/components/admin/SnapshotStrip'
@@ -10,6 +11,7 @@ import { requireUser } from '@/lib/auth'
 import { getConfig } from '@/lib/config'
 import { can } from '@/lib/permissions'
 import { getKpis, getTodaySnapshot, getTopIssues } from '@/lib/queries'
+import { createClient } from '@/lib/supabase/server'
 import { getInsights } from '@/lib/queries/insights'
 import { parseRange } from '@/lib/range'
 
@@ -44,6 +46,13 @@ export default async function AdminTodayPage({
     getInsights(range),
   ])
 
+  const supabase = await createClient()
+  const { data: kioskRows } = await supabase
+    .from('kiosks')
+    .select('label, last_seen_at')
+    .eq('outlet_id', user.outletId)
+    .eq('active', true)
+
   const biggestIssue = topIssues.find((issue) => (issue.mentions.value ?? 0) > 0) ?? null
   const biggestWin = topWins.find((issue) => (issue.mentions.value ?? 0) > 0) ?? null
   const loved = topWins.filter((issue) => (issue.mentions.value ?? 0) > 0).slice(0, 5)
@@ -55,7 +64,18 @@ export default async function AdminTodayPage({
 
       {/* 1 — the headline numbers, each against its previous period */}
       <section>
-        <SectionHeading title="Experience" note={kpis.overall.label} />
+        <SectionHeading
+          title="Experience"
+          note={kpis.overall.label}
+          action={
+            <KioskStatus
+              kiosks={(kioskRows ?? []).map((kiosk) => ({
+                label: kiosk.label,
+                lastSeenAt: kiosk.last_seen_at,
+              }))}
+            />
+          }
+        />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <KpiCard
             label="Overall experience"

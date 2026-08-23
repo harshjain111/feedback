@@ -672,6 +672,35 @@ export type Database = {
           },
         ]
       }
+      kiosk_write_budget: {
+        Row: {
+          outlet_id: string
+          kiosk_key: string
+          minute: string
+          hits: number
+        }
+        Insert: {
+          outlet_id: string
+          kiosk_key: string
+          minute: string
+          hits?: number
+        }
+        Update: {
+          outlet_id?: string
+          kiosk_key?: string
+          minute?: string
+          hits?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'kiosk_write_budget_outlet_id_fkey'
+            columns: ['outlet_id']
+            isOneToOne: false
+            referencedRelation: 'outlets'
+            referencedColumns: ['outlet_id']
+          },
+        ]
+      }
       kiosks: {
         Row: {
           kiosk_id: string
@@ -972,6 +1001,11 @@ export type Database = {
         Args: Record<string, unknown>
         Returns: unknown
       }
+      /** aic_consume_write_budget(p_outlet uuid, p_kiosk_key text, p_limit integer) -> boolean */
+      aic_consume_write_budget: {
+        Args: Record<string, unknown>
+        Returns: unknown
+      }
       /** aic_current_outlet() -> uuid */
       aic_current_outlet: {
         Args: Record<string, unknown>
@@ -1044,6 +1078,11 @@ export type Database = {
       }
       /** aic_prepare_feedback_row() -> trigger */
       aic_prepare_feedback_row: {
+        Args: Record<string, unknown>
+        Returns: unknown
+      }
+      /** aic_purge_expired_contacts(p_outlet uuid DEFAULT NULL::uuid) -> TABLE(outlet_id uuid, guests_anonymised integer) */
+      aic_purge_expired_contacts: {
         Args: Record<string, unknown>
         Returns: unknown
       }

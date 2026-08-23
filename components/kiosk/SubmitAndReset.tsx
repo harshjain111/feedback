@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { enqueue, flush } from '@/lib/kiosk/queue'
 import { clearDraft, getDraft, hasAnyRating } from '@/lib/session'
 
 /**
@@ -28,6 +29,18 @@ export function SubmitAndReset({ seconds }: { seconds: number }) {
 
     const draft = getDraft()
 
+    const payload = {
+      submissionId: draft.submissionId,
+      ratings: draft.ratings,
+      issueIds: draft.issueIds,
+      lovedIds: draft.lovedIds,
+      issueDetail: draft.issueDetail,
+      comment: draft.comment,
+      followUpRequested: draft.followUpRequested,
+      name: draft.name,
+      phone: draft.phone,
+    }
+
     const send = async () => {
       if (!hasAnyRating(draft)) return
 
@@ -35,33 +48,57 @@ export function SubmitAndReset({ seconds }: { seconds: number }) {
         const response = await fetch('/api/feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            submissionId: draft.submissionId,
-            ratings: draft.ratings,
-            issueIds: draft.issueIds,
-            lovedIds: draft.lovedIds,
-            issueDetail: draft.issueDetail,
-            comment: draft.comment,
-            followUpRequested: draft.followUpRequested,
-            name: draft.name,
-            phone: draft.phone,
-          }),
+          body: JSON.stringify(payload),
           keepalive: true,
         })
 
         if (!response.ok) {
-          console.error('[kiosk] submit rejected:', response.status, await response.text())
+          // A 5xx or a rate limit is worth retrying; a validation failure is
+          // not, and queuing it would loop forever.
+          if (response.status >= 500 || response.status === 429) {
+            await enqueue(draft.submissionId, payload)
+          } else {
+            console.error('[kiosk] submit rejected:', response.status, await response.text())
+          }
         }
-      } catch (error) {
-        // Prompt 43 queues this in IndexedDB and retries on reconnect, reusing
-        // the same submissionId so the retry collapses into one row.
-        console.error('[kiosk] submit failed:', error)
+      } catch {
+        // Offline. Queue it and move on — the guest has already done their
+        // part, and an error screen would tell them about a problem only we
+        // can fix (§43).
+        await enqueue(draft.submissionId, payload)
       } finally {
         clearDraft()
       }
     }
 
     void send()
+
+    // Anything left from an earlier outage goes out now that we clearly have a
+    // working connection, or the next time one appears.
+    void flush()
+    const onOnline = () => void flush()
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
+  }, [])
+
+  /**
+   * Back-button re-entry (§43).
+   *
+   * The journey is over and the draft is gone. Walking back into /contact would
+   * show a stranger an empty form mid-flow, so any attempt to leave this screen
+   * backwards lands on Welcome instead. A pushed sentinel entry means the first
+   * Back press is caught rather than the guest already being gone.
+   */
+  useEffect(() => {
+    window.history.pushState({ kioskThanks: true }, '')
+
+    const onPopState = () => {
+      clearDraft()
+      window.location.replace('/')
+    }
+
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
   // Subtle progress toward the auto-reset — reassurance that the terminal is

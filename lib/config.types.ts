@@ -92,6 +92,8 @@ export type AppConfig = KioskCopy & {
     idle_seconds: number
     /** Seconds the thank-you screen holds before auto-reset (§4). */
     thanks_seconds: number
+    /** Ceiling on submissions from one kiosk per minute (§42). */
+    max_writes_per_minute: number
   }
   thresholds: {
     category_attention: number
