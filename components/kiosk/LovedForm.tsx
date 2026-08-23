@@ -30,9 +30,14 @@ export function LovedForm({
     setSelected(getDraft().lovedIds)
   }, [])
 
-  const select = (next: string[]) => {
-    setSelected(next)
+  // Merge against the STORED list — same reason as the negative pathway.
+  const toggleLoved = (issueId: string) => {
+    const current = getDraft().lovedIds
+    const next = current.includes(issueId)
+      ? current.filter((id) => id !== issueId)
+      : [...current, issueId]
     patchDraft({ lovedIds: next })
+    setSelected(next)
   }
 
   return (
@@ -41,7 +46,12 @@ export function LovedForm({
         <h2 id="loved-most" className="font-display text-k-h2 text-ink mb-12 text-center">
           {heading}
         </h2>
-        <ChipGrid issues={issues} selected={selected} onChange={select} labelledBy="loved-most" />
+        <ChipGrid
+          issues={issues}
+          selected={selected}
+          onToggle={toggleLoved}
+          labelledBy="loved-most"
+        />
       </div>
 
       <div className="shrink-0 px-12 pt-4 pb-4">

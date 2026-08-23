@@ -55,6 +55,8 @@ export type KioskCopy = {
     micro: string
     /** Shown instead of `support` when the guest asked to be followed up. */
     followup_sub: string
+    /** Inline hint under the phone field. A hint, never a gate. */
+    phone_hint: string
   }
   thanks: {
     h1: string

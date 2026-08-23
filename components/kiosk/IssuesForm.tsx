@@ -33,9 +33,15 @@ export function IssuesForm({
     setDetail(draft.issueDetail)
   }, [])
 
-  const selectIssues = (next: string[]) => {
-    setSelected(next)
+  // Merge against the STORED list, never the closed-over one: two chips tapped
+  // in the same tick would otherwise each build from the same stale array.
+  const toggleIssue = (issueId: string) => {
+    const current = getDraft().issueIds
+    const next = current.includes(issueId)
+      ? current.filter((id) => id !== issueId)
+      : [...current, issueId]
     patchDraft({ issueIds: next })
+    setSelected(next)
   }
 
   const writeDetail = (next: string) => {
@@ -53,7 +59,7 @@ export function IssuesForm({
           <ChipGrid
             issues={issues}
             selected={selected}
-            onChange={selectIssues}
+            onToggle={toggleIssue}
             labelledBy="what-happened"
           />
         </div>

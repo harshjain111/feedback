@@ -13,19 +13,20 @@ import type { Issue } from '@/lib/config.types'
 export function ChipGrid({
   issues,
   selected,
-  onChange,
+  onToggle,
   labelledBy,
 }: {
   issues: Issue[]
   selected: string[]
-  onChange: (next: string[]) => void
+  /**
+   * Reports WHICH chip was tapped rather than the whole next array. The parent
+   * then merges against the stored draft, so two taps in the same tick cannot
+   * each build from the same stale list and drop one.
+   */
+  onToggle: (issueId: string) => void
   labelledBy?: string
 }) {
-  const toggle = (issueId: string) => {
-    onChange(
-      selected.includes(issueId) ? selected.filter((id) => id !== issueId) : [...selected, issueId],
-    )
-  }
+  const toggle = onToggle
 
   return (
     <div role="group" aria-labelledby={labelledBy} className="flex flex-wrap justify-center gap-5">

@@ -94,7 +94,7 @@ export function ContactForm({
               className="text-k-micro mt-3 block text-[color:var(--color-rating-2)]"
             >
               {/* A hint, not a gate: SKIP and the primary button both still work. */}
-              10 digits, starting 6–9
+              {copy.phone_hint}
             </span>
           ) : null}
         </label>

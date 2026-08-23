@@ -65,7 +65,7 @@ insert into issues (outlet_id, name, kind, display_order) values
 -- settings (Prompt 36); edits can be backfilled over history (Prompt 27).
 -- ---------------------------------------------------------------------------
 insert into themes (outlet_id, name, kind, display_order) values (v_outlet, $q$Waiting$q$, 'negative', 1) returning theme_id into v_theme;
-insert into theme_keywords (theme_id, keyword) values (v_theme, $q$waiting$q$), (v_theme, $q$wait$q$), (v_theme, $q$slow$q$), (v_theme, $q$late$q$), (v_theme, $q$delay$q$), (v_theme, $q$delayed$q$), (v_theme, $q$queue$q$), (v_theme, $q$long time$q$);
+insert into theme_keywords (theme_id, keyword) values (v_theme, $q$waiting$q$), (v_theme, $q$wait$q$), (v_theme, $q$waited$q$), (v_theme, $q$slow$q$), (v_theme, $q$late$q$), (v_theme, $q$delay$q$), (v_theme, $q$delayed$q$), (v_theme, $q$queue$q$), (v_theme, $q$long time$q$);
 insert into themes (outlet_id, name, kind, display_order) values (v_outlet, $q$Cold Food$q$, 'negative', 2) returning theme_id into v_theme;
 insert into theme_keywords (theme_id, keyword) values (v_theme, $q$cold$q$), (v_theme, $q$lukewarm$q$), (v_theme, $q$not hot$q$), (v_theme, $q$tepid$q$);
 insert into themes (outlet_id, name, kind, display_order) values (v_outlet, $q$Billing$q$, 'negative', 3) returning theme_id into v_theme;
@@ -148,6 +148,7 @@ insert into app_config (outlet_id, key, section, value) values
 -- ---------------------------------------------------------------------------
 insert into app_config (outlet_id, key, section, value) values
   (v_outlet, 'contact.followup_sub', 'contact', to_jsonb($q$Leave your mobile number and a member of our team will personally reach out.$q$::text)),
+  (v_outlet, 'contact.phone_hint', 'contact', to_jsonb($q$10 digits, starting 6-9$q$::text)),
   (v_outlet, 'privacy.consent_text', 'privacy', to_jsonb($q$We will only use your number to reach you about your feedback and to share news and offers from All India Café. Ask us any time and we will remove it.$q$::text)),
   (v_outlet, 'grievance.name', 'grievance', to_jsonb($q$Grievance Officer$q$::text)),
   (v_outlet, 'grievance.phone', 'grievance', to_jsonb($q$+91 00000 00000$q$::text)),

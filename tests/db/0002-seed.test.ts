@@ -46,6 +46,7 @@ const LOCKED_SECTIONS = [
 
 const AUTHORED_KEYS = new Set([
   'contact.followup_sub',
+  'contact.phone_hint',
   'grievance.name',
   'grievance.phone',
   'grievance.email',

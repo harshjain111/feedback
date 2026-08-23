@@ -174,7 +174,17 @@ export const REFERENCE_DEFAULTS: {
       name: 'Waiting',
       kind: 'negative',
       display_order: 1,
-      keywords: ['delay', 'delayed', 'late', 'long time', 'queue', 'slow', 'wait', 'waiting'],
+      keywords: [
+        'delay',
+        'delayed',
+        'late',
+        'long time',
+        'queue',
+        'slow',
+        'wait',
+        'waited',
+        'waiting',
+      ],
     },
     {
       theme_id: 'offline-theme-negative-cold-food',

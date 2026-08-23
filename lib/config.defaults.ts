@@ -38,6 +38,7 @@ export const CONFIG_DEFAULTS: AppConfig = {
     h1: "WE'D LOVE TO STAY CONNECTED ❤️",
     micro: 'Optional — you can skip this step.',
     name_label: 'Your Name',
+    phone_hint: '10 digits, starting 6-9',
     phone_label: 'Mobile Number',
     skip: 'SKIP',
     support:
