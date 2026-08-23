@@ -73,7 +73,7 @@ export default async function AdminTodayPage({
               footnote={
                 category.ratingCount === 0
                   ? undefined
-                  : `${category.ratingCount} ratings · ${category.negativeCount} negative`
+                  : `${category.ratingCount} rating${category.ratingCount === 1 ? '' : 's'} · ${category.negativeCount} negative`
               }
             />
           ))}

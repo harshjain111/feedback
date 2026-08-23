@@ -21,6 +21,16 @@ import { canTransition, type FollowUpStatus } from '@/lib/follow-up-workflow'
 
 type ActionResult = { ok: true } | { ok: false; error: string }
 
+/**
+ * A write blocked by RLS matches zero rows and returns NO error.
+ *
+ * That is how a STAFF user editing someone else's follow-up looks, and without
+ * this check the UI would cheerfully report success for a write that never
+ * happened. Every mutation below asks for the row back and treats an empty
+ * result as a refusal.
+ */
+const NOT_PERMITTED = 'You do not have access to this follow-up.'
+
 async function audit(
   action: string,
   followUpId: string,
@@ -66,7 +76,7 @@ export async function transitionFollowUp(
     return { ok: false, error: `Cannot move from ${current.status} to ${next}` }
   }
 
-  const { error: writeError } = await client
+  const { data: written, error: writeError } = await client
     .from('follow_ups')
     .update({
       status: next,
@@ -75,8 +85,10 @@ export async function transitionFollowUp(
       resolved_at: next === 'RESOLVED' ? new Date().toISOString() : null,
     })
     .eq('follow_up_id', followUpId)
+    .select('follow_up_id')
 
   if (writeError) return { ok: false, error: writeError.message }
+  if (!written || written.length === 0) return { ok: false, error: NOT_PERMITTED }
 
   await audit('FOLLOW_UP_TRANSITION', followUpId, { status: current.status }, { status: next })
   revalidatePath(`/admin/feedback/${current.feedback_id}`)
@@ -100,12 +112,14 @@ export async function assignFollowUp(
     .eq('follow_up_id', followUpId)
     .maybeSingle()
 
-  const { error } = await client
+  const { data: written, error } = await client
     .from('follow_ups')
     .update({ assigned_to: assignedTo })
     .eq('follow_up_id', followUpId)
+    .select('follow_up_id')
 
   if (error) return { ok: false, error: error.message }
+  if (!written || written.length === 0) return { ok: false, error: NOT_PERMITTED }
 
   await audit(
     'FOLLOW_UP_ASSIGN',
@@ -157,12 +171,14 @@ export async function setResolution(followUpId: string, resolution: string): Pro
     .eq('follow_up_id', followUpId)
     .maybeSingle()
 
-  const { error } = await client
+  const { data: written, error } = await client
     .from('follow_ups')
     .update({ resolution: resolution.trim() === '' ? null : resolution.trim() })
     .eq('follow_up_id', followUpId)
+    .select('follow_up_id')
 
   if (error) return { ok: false, error: error.message }
+  if (!written || written.length === 0) return { ok: false, error: NOT_PERMITTED }
 
   await audit(
     'FOLLOW_UP_RESOLUTION',

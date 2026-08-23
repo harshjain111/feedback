@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
 import { StatusBadge } from './StatusBadge'
 import {
@@ -28,6 +29,7 @@ export function FollowUpPanel({
   assignees: { userId: string; name: string }[]
   canAssign: boolean
 }) {
+  const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [note, setNote] = useState('')
@@ -37,7 +39,14 @@ export function FollowUpPanel({
     setError(null)
     startTransition(async () => {
       const result = await action()
-      if (!result.ok) setError(result.error ?? 'Something went wrong')
+      if (!result.ok) {
+        setError(result.error ?? 'Something went wrong')
+        return
+      }
+      // revalidatePath on the server marks the cache stale; the open client
+      // still holds the old props until it refetches. Without this the status
+      // badge keeps showing OPEN after a transition that actually succeeded.
+      router.refresh()
     })
   }
 
