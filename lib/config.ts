@@ -51,6 +51,23 @@ export const getOutletId = cache(async (): Promise<string> => {
   return data.outlet_id
 })
 
+/** Name and code of the outlet this deployment serves, for the admin header. */
+export const getOutlet = cache(async (): Promise<{ name: string; code: string }> => {
+  if (allowOfflineSeedFallback()) {
+    return { name: CONFIG_DEFAULTS.branding.name, code: outletCode() }
+  }
+
+  const db = createAdminClient()
+  const { data, error } = await db
+    .from('outlets')
+    .select('name, code')
+    .eq('code', outletCode())
+    .single()
+
+  if (error) throw new Error(`Could not load the outlet: ${error.message}`)
+  return data
+})
+
 // -----------------------------------------------------------------------------
 // Config assembly
 // -----------------------------------------------------------------------------
