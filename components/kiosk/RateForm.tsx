@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { BigButton } from './BigButton'
 import { CategoryIcon } from './CategoryIcon'
 import { FaceScale } from './FaceScale'
+import { PrefetchNext } from './PrefetchNext'
 import type { Category, RatingFace } from '@/lib/config.types'
 import { ratingValues, routeAfterRating } from '@/lib/journey'
 import { getDraft, patchDraft } from '@/lib/session'
@@ -52,6 +53,10 @@ export function RateForm({
 
   return (
     <>
+      {/* Any of the three branches could be next; prefetch is cheap and the
+          tablet is idle while the guest is still deciding. */}
+      <PrefetchNext routes={['/issues', '/loved', '/comment']} />
+
       <div
         className="flex min-h-0 flex-1 flex-col justify-center"
         style={{ gap: px(14), paddingInline: px(36) }}
@@ -103,6 +108,7 @@ export function RateForm({
       <div className="shrink-0" style={{ paddingInline: px(36), paddingBlock: px(20) }}>
         <BigButton
           fullWidth
+          className="k-cta"
           disabled={!complete}
           onClick={() => router.push(routeAfterRating(ratingValues(ratings)))}
         >

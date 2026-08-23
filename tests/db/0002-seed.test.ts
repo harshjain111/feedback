@@ -55,6 +55,7 @@ const AUTHORED_KEYS = new Set([
   'grievance.email',
   'negative.chips_hint',
   'followup.yes_sub',
+  'comment.h1_short',
 ])
 
 /**

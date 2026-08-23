@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { BigButton } from './BigButton'
+import { PrefetchNext } from './PrefetchNext'
 import { getDraft, patchDraft } from '@/lib/session'
 
 /** Counter appears only past this length — never a pressure gauge from keystroke one. */
@@ -45,6 +46,8 @@ export function CommentForm({
 
   return (
     <>
+      <PrefetchNext routes={['/contact']} />
+
       <div className="min-h-0 flex-1 overflow-y-auto" style={{ paddingInline: px(48) }}>
         <div className="flex min-h-full flex-col justify-center" style={{ paddingBlock: px(16) }}>
           <div className="flex justify-center" style={{ marginBottom: px(16) }}>
@@ -83,7 +86,7 @@ export function CommentForm({
       </div>
 
       <div className="shrink-0" style={{ paddingInline: px(48), paddingBottom: px(20) }}>
-        <BigButton fullWidth onClick={() => router.push('/followup')}>
+        <BigButton fullWidth className="k-cta" onClick={() => router.push('/contact')}>
           {continueLabel}
         </BigButton>
       </div>

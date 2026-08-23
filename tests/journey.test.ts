@@ -67,34 +67,46 @@ describe('routeAfterRating', () => {
 describe('routeAfter — the rest of the journey', () => {
   const good = [5, 5, 5, 5]
 
-  it('walks the full positive journey', () => {
+  it('walks the full positive journey in four steps', () => {
     expect(routeAfter('/', good)).toBe('/rate')
     expect(routeAfter('/rate', good)).toBe('/loved')
-    expect(routeAfter('/loved', good)).toBe('/comment')
-    expect(routeAfter('/comment', good)).toBe('/followup')
-    expect(routeAfter('/followup', good)).toBe('/contact')
+    expect(routeAfter('/loved', good)).toBe('/contact')
     expect(routeAfter('/contact', good)).toBe('/thanks')
     expect(routeAfter('/thanks', good)).toBe('/')
   })
 
-  it('walks the full negative journey', () => {
+  it('walks the full negative journey in four steps', () => {
     const bad = [1, 2, 4, 5]
     expect(routeAfter('/rate', bad)).toBe('/issues')
-    expect(routeAfter('/issues', bad)).toBe('/comment')
+    expect(routeAfter('/issues', bad)).toBe('/contact')
   })
 
-  it('always converges on the comment screen, whichever branch was taken', () => {
+  it('never sends anyone through a standalone follow-up screen', () => {
+    // Removed at the client's request: asking "would you like a callback?" and
+    // then asking for a phone number is the same question twice.
+    const reachable = new Set<string>()
+    for (const ratings of [
+      [1, 1, 1, 1],
+      [5, 5, 5, 5],
+      [3, 3, 3, 3],
+    ]) {
+      let at = routeAfter('/', ratings)
+      for (let step = 0; step < 8 && at !== '/'; step += 1) {
+        reachable.add(at)
+        at = routeAfter(at, ratings)
+      }
+    }
+    expect([...reachable]).not.toContain('/followup')
+  })
+
+  it('gives every branch exactly one screen before contact', () => {
     for (const ratings of [
       [1, 1, 1, 1],
       [5, 5, 5, 5],
       [3, 3, 3, 3],
     ]) {
       const branch = routeAfter('/rate', ratings)
-      // Neutral skips both branches and lands on /comment directly; the other
-      // two arrive one hop later. Either way the next stop is /followup.
-      const atComment = branch === '/comment' ? branch : routeAfter(branch, ratings)
-      expect(atComment).toBe('/comment')
-      expect(routeAfter(atComment, ratings)).toBe('/followup')
+      expect(routeAfter(branch, ratings), branch).toBe('/contact')
     }
   })
 })

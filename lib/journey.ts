@@ -21,8 +21,7 @@ export const POSITIVE_AVERAGE_AT_LEAST = 4
 
 export type Pathway = 'negative' | 'positive' | 'neutral'
 
-export type KioskRoute =
-  '/' | '/rate' | '/issues' | '/loved' | '/comment' | '/followup' | '/contact' | '/thanks'
+export type KioskRoute = '/' | '/rate' | '/issues' | '/loved' | '/comment' | '/contact' | '/thanks'
 
 /** Mean of the given ratings, or null when there are none. */
 export function averageRating(ratings: number[]): number | null {
@@ -71,6 +70,16 @@ export function routeAfterRating(ratings: number[]): KioskRoute {
 /**
  * The rest of the journey after the branch. Kept here so the order lives in one
  * place rather than being spelled out again in every screen's CTA.
+ *
+ * Four taps from Welcome to done. The standalone comment screen and the
+ * "would you like us to follow up?" screen were both removed at the client's
+ * request: the comment now lives on the branch screen the guest is already on,
+ * and asking about a callback immediately before asking for a phone number was
+ * asking the same question twice.
+ *
+ * /comment survives only as the neutral branch — a guest who rated everything
+ * 3 has no chips to pick, so the comment IS their screen rather than an extra
+ * one.
  */
 export function routeAfter(current: KioskRoute, ratings: number[]): KioskRoute {
   switch (current) {
@@ -80,10 +89,7 @@ export function routeAfter(current: KioskRoute, ratings: number[]): KioskRoute {
       return routeAfterRating(ratings)
     case '/issues':
     case '/loved':
-      return '/comment'
     case '/comment':
-      return '/followup'
-    case '/followup':
       return '/contact'
     case '/contact':
       return '/thanks'

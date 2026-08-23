@@ -50,21 +50,21 @@
   /* Kiosk type scale, in design px. These declarations are what make the
      text-k-* utilities exist at all; .kiosk-root below re-points them at the
      viewport-derived unit so they scale on a real tablet. */
-  --text-k-display: 88px;
-  --text-k-h1: 64px;
-  --text-k-h1--line-height: 1.08;
+  --text-k-display: 96px;
+  --text-k-h1: 76px;
+  --text-k-h1--line-height: 1.06;
   --text-k-h1--letter-spacing: -0.015em;
-  --text-k-h2: 44px;
-  --text-k-h3: 34px;
+  --text-k-h2: 54px;
+  --text-k-h3: 40px;
   --text-k-h3--line-height: 1.2;
-  --text-k-lead: 30px;
-  --text-k-lead--line-height: 1.4;
-  --text-k-body: 26px;
-  --text-k-body--line-height: 1.5;
-  --text-k-small: 22px;
-  --text-k-small--line-height: 1.45;
-  --text-k-micro: 20px;
-  --text-k-micro--line-height: 1.4;
+  --text-k-lead: 34px;
+  --text-k-lead--line-height: 1.35;
+  --text-k-body: 30px;
+  --text-k-body--line-height: 1.45;
+  --text-k-small: 26px;
+  --text-k-small--line-height: 1.4;
+  --text-k-micro: 24px;
+  --text-k-micro--line-height: 1.35;
 
   --ease-kiosk: cubic-bezier(0.2, 0, 0.1, 1);
   --duration-kiosk: 180ms;
@@ -103,24 +103,26 @@
   --spacing: calc(4 * var(--kpx));
 
   /* Type scale — H1 ≥ 56, body ≥ 24, floor 20 (§6), all in design px. */
-  --text-k-display: calc(88 * var(--kpx));
+  --text-k-display: calc(96 * var(--kpx));
   --text-k-display--line-height: 1;
-  --text-k-h1: calc(64 * var(--kpx));
-  --text-k-h2: calc(44 * var(--kpx));
-  --text-k-h2--line-height: 1.15;
-  --text-k-h3: calc(34 * var(--kpx));
+  --text-k-h1: calc(76 * var(--kpx));
+  --text-k-h2: calc(54 * var(--kpx));
+  --text-k-h2--line-height: 1.12;
+  --text-k-h3: calc(40 * var(--kpx));
   --text-k-h3--line-height: 1.2;
-  --text-k-lead: calc(30 * var(--kpx));
-  --text-k-lead--line-height: 1.4;
-  --text-k-body: calc(26 * var(--kpx));
-  --text-k-body--line-height: 1.5;
-  --text-k-small: calc(22 * var(--kpx));
-  --text-k-small--line-height: 1.45;
-  --text-k-micro: calc(20 * var(--kpx));
-  --text-k-micro--line-height: 1.4;
+  --text-k-lead: calc(34 * var(--kpx));
+  --text-k-lead--line-height: 1.35;
+  --text-k-body: calc(30 * var(--kpx));
+  --text-k-body--line-height: 1.45;
+  --text-k-small: calc(26 * var(--kpx));
+  --text-k-small--line-height: 1.4;
+  --text-k-micro: calc(24 * var(--kpx));
+  --text-k-micro--line-height: 1.35;
 
-  --radius-card: calc(24 * var(--kpx));
-  --radius-button: calc(18 * var(--kpx));
+  --radius-card: calc(32 * var(--kpx));
+  /* Fully rounded. A pill reads as "press me" from across a room in a way a
+     6px corner does not, and there is no density constraint here to fight. */
+  --radius-button: 9999px;
 
   /* §6 hardening. */
   user-select: none;
@@ -136,10 +138,16 @@
   -webkit-user-select: text;
 }
 
-/* Minimum tap target, §6: 88 design px. */
+/* §6 floors tap targets at 88 design px. We use 104: on a wall-mounted screen
+   a guest is often reaching sideways, not aiming. */
 .k-tap {
-  min-height: calc(88 * var(--kpx));
-  min-width: calc(88 * var(--kpx));
+  min-height: calc(104 * var(--kpx));
+  min-width: calc(104 * var(--kpx));
+}
+
+/* The full-width primary action at the foot of most screens. */
+.k-cta {
+  min-height: calc(120 * var(--kpx));
 }
 
 /* A card on the kiosk: paper on paper, separated by a hairline, not a shadow. */
@@ -213,4 +221,42 @@ body {
   a[href]::after {
     content: '';
   }
+}
+
+/* -----------------------------------------------------------------------------
+   Loading
+
+   Navigation between kiosk screens is a server round trip, so there is a beat
+   where nothing changes. Without a signal a guest taps again, and the second
+   tap is the one that feels broken. This is deliberately quiet — a pulsing
+   mark, not a spinner racing.
+   -------------------------------------------------------------------------- */
+
+@keyframes aic-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.k-breathe {
+  animation: aic-breathe 1400ms var(--ease-kiosk) infinite;
+}
+
+@keyframes aic-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(400%);
+  }
+}
+
+.k-sweep {
+  animation: aic-sweep 1200ms var(--ease-kiosk) infinite;
 }

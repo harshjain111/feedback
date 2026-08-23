@@ -37,6 +37,8 @@ export type KioskCopy = {
   }
   comment: {
     h1: string
+    /** Short label for the comment folded into a branch screen — not from §5. */
+    h1_short: string
     support: string
     placeholder: string
     badge: string

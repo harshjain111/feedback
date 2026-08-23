@@ -8,6 +8,8 @@ import type { AppConfig } from '@/lib/config.types'
 // From lib/phone, not lib/validation: the latter imports zod, which has no
 // business in the kiosk bundle (§6).
 import { isValidPhone } from '@/lib/phone'
+import { PrefetchNext } from './PrefetchNext'
+import { ratingValues, sentimentFor } from '@/lib/journey'
 import { getDraft, patchDraft } from '@/lib/session'
 
 /**
@@ -28,7 +30,7 @@ export function ContactForm({
   const router = useRouter()
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [followUpRequested, setFollowUpRequested] = useState(false)
+  const [wantsCallback, setWantsCallback] = useState(false)
   const [touchedPhone, setTouchedPhone] = useState(false)
   const px = (n: number) => `calc(${n} * var(--kpx))`
 
@@ -36,7 +38,15 @@ export function ContactForm({
     const draft = getDraft()
     setName(draft.name)
     setPhone(draft.phone)
-    setFollowUpRequested(draft.followUpRequested === true)
+    // The standalone "would you like us to follow up?" screen was removed: it
+    // asked for consent to call and was immediately followed by a screen asking
+    // for the number, which is the same question twice.
+    //
+    // A callback is now INFERRED — a guest who had a bad visit and still leaves
+    // a number is asking to be contacted about it. A guest who had a good visit
+    // and leaves one is joining the mailing list, which is a different thing and
+    // must not open a follow-up nobody needs to chase.
+    setWantsCallback(sentimentFor(ratingValues(draft.ratings)) === 'negative')
   }, [])
 
   // Only ever complains about something the guest actually typed.
@@ -44,7 +54,12 @@ export function ContactForm({
   const phoneLooksRight = phone.trim() !== '' && isValidPhone(phone)
 
   const finish = (keepDetails: boolean) => {
-    patchDraft(keepDetails ? { name: name.trim(), phone: phone.trim() } : { name: '', phone: '' })
+    const keptPhone = keepDetails ? phone.trim() : ''
+    patchDraft({
+      name: keepDetails ? name.trim() : '',
+      phone: keptPhone,
+      followUpRequested: wantsCallback && keptPhone !== '',
+    })
     router.push('/thanks')
   }
 
@@ -53,6 +68,8 @@ export function ContactForm({
 
   return (
     <>
+      <PrefetchNext routes={['/thanks']} />
+
       <header className="shrink-0 text-center" style={{ paddingInline: px(48), paddingTop: px(8) }}>
         <h1 className="font-display text-k-h1 text-ink text-balance">{copy.h1}</h1>
         {/*
@@ -64,7 +81,7 @@ export function ContactForm({
           className="text-k-lead text-ink-muted mx-auto text-pretty"
           style={{ marginTop: px(14), maxWidth: px(860) }}
         >
-          {followUpRequested ? copy.followup_sub : copy.support}
+          {wantsCallback ? copy.followup_sub : copy.support}
         </p>
       </header>
 
@@ -169,10 +186,10 @@ export function ContactForm({
 
       <div className="shrink-0" style={{ paddingInline: px(48), paddingBottom: px(20) }}>
         <div className="flex flex-col" style={{ gap: px(12) }}>
-          <BigButton fullWidth onClick={() => finish(true)}>
+          <BigButton fullWidth className="k-cta" onClick={() => finish(true)}>
             {copy.cta}
           </BigButton>
-          <BigButton fullWidth variant="secondary" onClick={() => finish(false)}>
+          <BigButton fullWidth variant="secondary" className="k-cta" onClick={() => finish(false)}>
             {copy.skip}
           </BigButton>
         </div>

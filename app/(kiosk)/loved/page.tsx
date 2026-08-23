@@ -28,7 +28,12 @@ export default async function KioskLovedPage() {
           </p>
         </header>
 
-        <LovedForm issues={issues} heading={config.positive.h2} continueLabel={config.rate.cta} />
+        <LovedForm
+          issues={issues}
+          heading={config.positive.h2}
+          comment={config.comment}
+          continueLabel={config.rate.cta}
+        />
       </section>
     </KioskScreen>
   )

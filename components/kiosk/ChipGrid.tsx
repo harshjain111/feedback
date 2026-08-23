@@ -42,8 +42,14 @@ export function ChipGrid({
     <div
       role="group"
       aria-labelledby={labelledBy}
-      className="grid"
-      style={{ gap: px(14), gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      /*
+       * flex-wrap, not grid. A grid leaves a short final row jammed against the
+       * left edge — five tiles in three columns puts two orphans on the left,
+       * which reads as a mistake. Wrapping and centring keeps every row
+       * balanced whatever the count.
+       */
+      className="flex flex-wrap justify-center"
+      style={{ gap: px(18) }}
     >
       {issues.map((issue) => {
         const isSelected = selected.includes(issue.issue_id)
@@ -61,8 +67,11 @@ export function ChipGrid({
               'focus-visible:outline-2 focus-visible:outline-offset-2',
             )}
             style={{
-              gap: px(10),
-              padding: px(16),
+              gap: px(12),
+              padding: px(20),
+              // A fixed basis keeps every tile the same size, so no option
+              // looks more important than another.
+              flex: `0 0 calc((100% - ${columns - 1} * ${px(18)}) / ${columns})`,
               borderColor: isSelected ? activeColour : undefined,
               borderWidth: isSelected ? px(2.5) : undefined,
               background: isSelected ? 'var(--color-surface)' : undefined,

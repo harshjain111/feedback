@@ -29,6 +29,7 @@ export const CONFIG_DEFAULTS: AppConfig = {
   comment: {
     badge: 'Optional',
     h1: "IS THERE ANYTHING ELSE YOU'D LIKE US TO KNOW?",
+    h1_short: 'Anything else?',
     placeholder: 'YOUR THOUGHTS...',
     support:
       "A compliment, a suggestion or something we could have done better — we'd love to hear it.",

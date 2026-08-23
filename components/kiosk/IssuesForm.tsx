@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { BigButton } from './BigButton'
 import { ChipGrid } from './ChipGrid'
+import { PrefetchNext } from './PrefetchNext'
 import type { AppConfig, Issue } from '@/lib/config.types'
 import { getDraft, patchDraft } from '@/lib/session'
 
@@ -52,9 +53,11 @@ export function IssuesForm({
 
   return (
     <>
+      <PrefetchNext routes={['/contact']} />
+
       <div
-        className="flex min-h-0 flex-1 flex-col justify-center"
-        style={{ gap: px(20), paddingInline: px(40) }}
+        className="flex min-h-0 flex-1 flex-col"
+        style={{ gap: px(22), paddingInline: px(44), paddingTop: px(12) }}
       >
         <div>
           <h2
@@ -77,7 +80,7 @@ export function IssuesForm({
           />
         </div>
 
-        <div>
+        <div className="flex min-h-0 flex-1 flex-col">
           <h3
             id="tell-us-more"
             className="font-display text-k-h3 text-ink text-center"
@@ -92,15 +95,14 @@ export function IssuesForm({
             aria-labelledby="tell-us-more"
             value={detail}
             onChange={(event) => writeDetail(event.target.value)}
-            rows={3}
-            className="k-card text-k-body text-ink focus:border-accent w-full resize-none outline-none"
-            style={{ padding: px(20) }}
+            className="k-card bg-surface text-k-body text-ink focus:border-accent min-h-0 w-full flex-1 resize-none outline-none"
+            style={{ padding: px(24) }}
           />
         </div>
       </div>
 
-      <div className="shrink-0" style={{ paddingInline: px(40), paddingBlock: px(20) }}>
-        <BigButton fullWidth onClick={() => router.push('/comment')}>
+      <div className="shrink-0" style={{ paddingInline: px(44), paddingBlock: px(20) }}>
+        <BigButton fullWidth className="k-cta" onClick={() => router.push('/contact')}>
           {continueLabel}
         </BigButton>
       </div>
