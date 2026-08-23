@@ -17,6 +17,19 @@ import { getOutlet } from '@/lib/config'
  * Visually this is the opposite of the kiosk on purpose: dense, desktop-first,
  * information before atmosphere.
  */
+/**
+ * Never prerendered, never cached.
+ *
+ * Every page under here is per-user and per-request: the role decides what
+ * renders, and the rows come back scoped by RLS to whoever is asking. Next
+ * would otherwise be free to statically render these — it does exactly that
+ * when the build runs without Supabase configured, because the guard
+ * short-circuits before `cookies()` is ever touched and no dynamic API is
+ * observed. Relying on an implicit `cookies()` call to opt out is too subtle a
+ * thing to have standing between one manager's dashboard and another's.
+ */
+export const dynamic = 'force-dynamic'
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser()
   const outlet = await getOutlet()
