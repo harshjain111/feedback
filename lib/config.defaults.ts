@@ -19,6 +19,7 @@ export const CONFIG_DEFAULTS: AppConfig = {
     rating_at_or_below: 2,
   },
   branding: {
+    frame_image_url: '/artwork/frame-portrait.webp',
     instagram_handle: '@allindiacafe',
     instagram_url: 'https://instagram.com/allindiacafe',
     logo_url: '',
@@ -49,6 +50,7 @@ export const CONFIG_DEFAULTS: AppConfig = {
     no: "NO, I'M GOOD",
     support: "If you'd like, a member of our team can personally reach out to you.",
     yes: 'YES, PLEASE',
+    yes_sub: 'I would like to hear from you',
   },
   footer: {
     brand: 'All India Café',
@@ -69,6 +71,7 @@ export const CONFIG_DEFAULTS: AppConfig = {
     thanks_seconds: 8,
   },
   negative: {
+    chips_hint: 'Select what needs improvement — you can choose more than one.',
     h1: 'THANK YOU FOR TELLING US.',
     h2: 'WHAT HAPPENED?',
     h3: 'TELL US MORE',

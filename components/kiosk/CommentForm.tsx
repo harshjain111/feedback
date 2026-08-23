@@ -1,7 +1,7 @@
 'use client'
 
+import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
 import { BigButton } from './BigButton'
 import { getDraft, patchDraft } from '@/lib/session'
 
@@ -21,6 +21,7 @@ export function CommentForm({
   const router = useRouter()
   const [comment, setComment] = useState('')
   const fieldRef = useRef<HTMLTextAreaElement>(null)
+  const px = (n: number) => `calc(${n} * var(--kpx))`
 
   useEffect(() => {
     setComment(getDraft().comment)
@@ -34,7 +35,7 @@ export function CommentForm({
   /**
    * The one screen allowed to scroll (§6), and only because the on-screen
    * keyboard eats the bottom half of a tablet. scrollIntoView on focus keeps
-   * the field above it without us trying to guess the keyboard's height.
+   * the field above it without trying to guess the keyboard's height.
    */
   const onFocus = () => {
     window.setTimeout(() => {
@@ -44,10 +45,13 @@ export function CommentForm({
 
   return (
     <>
-      <div className="min-h-0 flex-1 overflow-y-auto px-12">
-        <div className="flex min-h-full flex-col justify-center py-6">
-          <div className="mb-5 flex justify-center">
-            <span className="bg-accent-soft text-accent text-k-micro rounded-chip px-6 py-2 font-medium">
+      <div className="min-h-0 flex-1 overflow-y-auto" style={{ paddingInline: px(48) }}>
+        <div className="flex min-h-full flex-col justify-center" style={{ paddingBlock: px(16) }}>
+          <div className="flex justify-center" style={{ marginBottom: px(16) }}>
+            <span
+              className="bg-accent-soft text-accent text-k-micro rounded-chip font-medium"
+              style={{ paddingInline: px(22), paddingBlock: px(8) }}
+            >
               {badge}
             </span>
           </div>
@@ -59,22 +63,26 @@ export function CommentForm({
             onFocus={onFocus}
             placeholder={placeholder}
             maxLength={MAX_LENGTH}
-            rows={7}
+            rows={6}
             aria-label={placeholder}
-            className="border-line-strong bg-surface text-k-body text-ink placeholder:text-ink-muted/60 focus:border-accent w-full resize-none rounded-[20px] border-2 p-8 outline-none"
+            className="k-card bg-surface text-k-body text-ink placeholder:text-ink-muted/60 focus:border-accent w-full resize-none outline-none"
+            style={{ padding: px(26) }}
           />
 
           <p
-            className="text-k-micro text-ink-muted mt-3 text-right"
+            className="text-k-micro text-ink-muted text-right"
             aria-live="polite"
-            style={{ visibility: comment.length >= COUNTER_FROM ? 'visible' : 'hidden' }}
+            style={{
+              marginTop: px(10),
+              visibility: comment.length >= COUNTER_FROM ? 'visible' : 'hidden',
+            }}
           >
             {comment.length} / {MAX_LENGTH}
           </p>
         </div>
       </div>
 
-      <div className="shrink-0 px-12 pt-2 pb-4">
+      <div className="shrink-0" style={{ paddingInline: px(48), paddingBottom: px(20) }}>
         <BigButton fullWidth onClick={() => router.push('/followup')}>
           {continueLabel}
         </BigButton>

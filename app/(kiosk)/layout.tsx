@@ -7,21 +7,15 @@ import { getConfig } from '@/lib/config'
 /**
  * The kiosk shell — CLAUDE.md §4 and §6.
  *
- * Portrait only, designed at 1080×1920. This is a dedicated kiosk app, not a
- * responsive site: the max-width simply keeps it sane in a desktop browser
- * during review. No scrolling anywhere except the comment screen, which opts
- * back in for itself when the on-screen keyboard appears.
+ * Portrait only. Every size inside comes from --kpx (see globals.css), which is
+ * derived from the real viewport, so the 1080×1920 design renders identically
+ * on a tablet reporting 540×960 and cannot overflow it.
+ *
+ * h-dvh + overflow-hidden makes "no scrolling on any screen" structural rather
+ * than something each screen has to remember; the comment screen opts its own
+ * field back in when the keyboard appears.
  */
 
-/**
- * Never statically prerendered.
- *
- * Every string on every kiosk screen comes from app_config, so a build-time
- * prerender would bake today's copy into the HTML and a CMS edit would need a
- * redeploy to appear — which is exactly what §3 and the Prompt 35 checkpoint
- * forbid. Rendering per request costs nothing here: getConfig() is behind a 60s
- * cache, so the database is hit at most once a minute regardless of traffic.
- */
 export const dynamic = 'force-dynamic'
 
 export const viewport: Viewport = {
@@ -29,18 +23,18 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#FBF8F2',
+  themeColor: '#FBF6EC',
 }
 
 export default async function KioskLayout({ children }: { children: React.ReactNode }) {
   const config = await getConfig()
 
   return (
-    // h-dvh + overflow-hidden, not min-h: "no scrolling on any screen" (§6) has
-    // to be structurally true, not a thing each screen remembers to honour. The
-    // comment screen opts its own textarea back in when the keyboard appears.
     <div className="kiosk-root bg-ground flex h-dvh justify-center overflow-hidden">
-      <div className="flex h-dvh w-full max-w-[1080px] flex-col overflow-hidden">
+      <div
+        className="flex h-dvh w-full flex-col overflow-hidden"
+        style={{ maxWidth: 'calc(1080 * var(--kpx))' }}
+      >
         <KioskHeartbeat />
         <IdleResetProvider idleSeconds={config.kiosk.idle_seconds}>
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>

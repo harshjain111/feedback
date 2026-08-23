@@ -3,8 +3,6 @@ import { join } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { freshDb, one, outletId, rows, type Db } from './harness'
 
-const M = '0002_seed.sql'
-
 /**
  * Every string the guest can read must still match CLAUDE.md §5 character for
  * character. This test re-reads the spec rather than trusting the migration:
@@ -44,16 +42,30 @@ const LOCKED_SECTIONS = [
   'grievance',
 ]
 
+/**
+ * Strings in a locked section that are NOT from §5, so the verbatim check skips
+ * them. Every entry here is a deliberate decision that needs client sign-off —
+ * adding one should feel like a cost.
+ */
 const AUTHORED_KEYS = new Set([
   'contact.followup_sub',
   'contact.phone_hint',
   'grievance.name',
   'grievance.phone',
   'grievance.email',
+  'negative.chips_hint',
+  'followup.yes_sub',
 ])
 
+/**
+ * Every migration, not just 0002.
+ *
+ * Scoping this to 0002 meant a later migration could add a customer-facing
+ * string to a locked section and slip past the §5 drift check entirely —
+ * which 0008 promptly did. Applying the full chain closes that.
+ */
 async function seededDb(): Promise<Db> {
-  return freshDb(M)
+  return freshDb()
 }
 
 describe('0002 — locked copy', () => {

@@ -25,6 +25,8 @@ export type KioskCopy = {
     h1: string
     sub: string
     h2: string
+    /** Helper under "WHAT HAPPENED?" — authored, not from §5. */
+    chips_hint: string
     h3: string
     support: string
   }
@@ -43,6 +45,8 @@ export type KioskCopy = {
     h1: string
     support: string
     yes: string
+    /** Second line under the YES button — authored, not from §5. */
+    yes_sub: string
     no: string
   }
   contact: {
@@ -86,6 +90,11 @@ export type AppConfig = KioskCopy & {
     website_url: string
     instagram_url: string
     instagram_handle: string
+    /**
+     * The full-screen illustrated frame behind every kiosk screen. Defaults to
+     * the bundled artwork; set it to swap in a new one without a deploy.
+     */
+    frame_image_url: string
   }
   kiosk: {
     /** Seconds of inactivity before the journey resets to Welcome (§4). */

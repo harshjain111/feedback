@@ -10,9 +10,9 @@ import { getDraft, patchDraft } from '@/lib/session'
 /**
  * The negative pathway (§5).
  *
- * CONTINUE is never disabled and nothing is required. A guest who is annoyed
- * enough to rate 1 is not owed a form — the screen exists so they can say more
- * if they want to, and leave if they do not.
+ * CONTINUE is never disabled and nothing is required. A guest annoyed enough to
+ * rate 1 is not owed a form — the screen exists so they can say more if they
+ * want to, and leave if they do not.
  */
 export function IssuesForm({
   issues,
@@ -26,6 +26,7 @@ export function IssuesForm({
   const router = useRouter()
   const [selected, setSelected] = useState<string[]>([])
   const [detail, setDetail] = useState('')
+  const px = (n: number) => `calc(${n} * var(--kpx))`
 
   useEffect(() => {
     const draft = getDraft()
@@ -33,7 +34,7 @@ export function IssuesForm({
     setDetail(draft.issueDetail)
   }, [])
 
-  // Merge against the STORED list, never the closed-over one: two chips tapped
+  // Merge against the STORED list, never the closed-over one: two tiles tapped
   // in the same tick would otherwise each build from the same stale array.
   const toggleIssue = (issueId: string) => {
     const current = getDraft().issueIds
@@ -51,35 +52,54 @@ export function IssuesForm({
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col justify-center gap-10 px-12">
+      <div
+        className="flex min-h-0 flex-1 flex-col justify-center"
+        style={{ gap: px(20), paddingInline: px(40) }}
+      >
         <div>
-          <h2 id="what-happened" className="font-display text-k-h2 text-ink mb-8 text-center">
+          <h2
+            id="what-happened"
+            className="font-display text-k-h2 text-ink text-center"
+            style={{ marginBottom: px(6) }}
+          >
             {copy.h2}
           </h2>
+          <p className="text-k-small text-ink-muted text-center" style={{ marginBottom: px(16) }}>
+            {copy.chips_hint}
+          </p>
           <ChipGrid
             issues={issues}
             selected={selected}
             onToggle={toggleIssue}
             labelledBy="what-happened"
+            tone="negative"
+            columns={3}
           />
         </div>
 
         <div>
-          <h3 id="tell-us-more" className="font-display text-k-h3 text-ink mb-3 text-center">
+          <h3
+            id="tell-us-more"
+            className="font-display text-k-h3 text-ink text-center"
+            style={{ marginBottom: px(6) }}
+          >
             {copy.h3}
           </h3>
-          <p className="text-k-small text-ink-muted mb-5 text-center">{copy.support}</p>
+          <p className="text-k-small text-ink-muted text-center" style={{ marginBottom: px(12) }}>
+            {copy.support}
+          </p>
           <textarea
             aria-labelledby="tell-us-more"
             value={detail}
             onChange={(event) => writeDetail(event.target.value)}
-            rows={4}
-            className="border-line-strong bg-surface text-k-body text-ink focus:border-accent w-full resize-none rounded-[20px] border-2 p-7 outline-none"
+            rows={3}
+            className="k-card text-k-body text-ink focus:border-accent w-full resize-none outline-none"
+            style={{ padding: px(20) }}
           />
         </div>
       </div>
 
-      <div className="shrink-0 px-12 pt-4 pb-4">
+      <div className="shrink-0" style={{ paddingInline: px(40), paddingBlock: px(20) }}>
         <BigButton fullWidth onClick={() => router.push('/comment')}>
           {continueLabel}
         </BigButton>

@@ -14,15 +14,15 @@ import type { FaceKey } from '@/lib/config.types'
  *   - eyebrows on `angry` and `sad` only
  *   - flat and friendly — no 3D shading, bevel or gloss
  *
- * The colour always comes from the caller (a rating_scale row), never from a
- * constant here: the ramp is CMS-editable.
+ * `size` is in DESIGN pixels and rendered through --kpx, so a face is the same
+ * proportion of the screen on every tablet.
  */
 
 type FaceIconProps = {
   faceKey: FaceKey
   /** Hex from the rating_scale row. */
   colour: string
-  /** Rendered size in px. Kiosk taps need >= 140 (§6). */
+  /** Diameter in design px. Kiosk taps need >= 140 (§6). */
   size?: number
   className?: string
   title?: string
@@ -30,7 +30,6 @@ type FaceIconProps = {
 
 const CUT = '#ffffff'
 
-/** Eyes shared by the first four faces — simple ovals. */
 function OvalEyes() {
   return (
     <>
@@ -49,7 +48,6 @@ function Features({ faceKey }: { faceKey: FaceKey }) {
           <path d="M22 27 L44 36" stroke={CUT} strokeWidth="7" strokeLinecap="round" fill="none" />
           <path d="M78 27 L56 36" stroke={CUT} strokeWidth="7" strokeLinecap="round" fill="none" />
           <OvalEyes />
-          {/* Deep frown. */}
           <path
             d="M28 76 Q50 52 72 76"
             stroke={CUT}
@@ -67,7 +65,6 @@ function Features({ faceKey }: { faceKey: FaceKey }) {
           <path d="M24 29 H44" stroke={CUT} strokeWidth="6" strokeLinecap="round" />
           <path d="M56 29 H76" stroke={CUT} strokeWidth="6" strokeLinecap="round" />
           <OvalEyes />
-          {/* Shallow frown. */}
           <path
             d="M30 73 Q50 61 70 73"
             stroke={CUT}
@@ -82,7 +79,6 @@ function Features({ faceKey }: { faceKey: FaceKey }) {
       return (
         <>
           <OvalEyes />
-          {/* Straight horizontal mouth. */}
           <path d="M32 68 H68" stroke={CUT} strokeWidth="6.5" strokeLinecap="round" />
         </>
       )
@@ -91,9 +87,8 @@ function Features({ faceKey }: { faceKey: FaceKey }) {
       return (
         <>
           <OvalEyes />
-          {/* Gentle upward smile. */}
           <path
-            d="M31 63 Q50 77 69 63"
+            d="M31 63 Q50 78 69 63"
             stroke={CUT}
             strokeWidth="6.5"
             strokeLinecap="round"
@@ -105,7 +100,7 @@ function Features({ faceKey }: { faceKey: FaceKey }) {
     case 'delighted':
       return (
         <>
-          {/* Curved-arc closed eyes. */}
+          {/* Curved-arc closed eyes — the reference's "smiling eyes". */}
           <path
             d="M25 44 Q35 31 45 44"
             stroke={CUT}
@@ -128,11 +123,12 @@ function Features({ faceKey }: { faceKey: FaceKey }) {
 }
 
 export function FaceIcon({ faceKey, colour, size = 140, className, title }: FaceIconProps) {
+  const dimension = `calc(${size} * var(--kpx))`
+
   return (
     <svg
       viewBox="0 0 100 100"
-      width={size}
-      height={size}
+      style={{ width: dimension, height: dimension }}
       className={className}
       role={title ? 'img' : 'presentation'}
       aria-hidden={title ? undefined : true}

@@ -1,4 +1,5 @@
 import { IssuesForm } from '@/components/kiosk/IssuesForm'
+import { KioskScreen } from '@/components/kiosk/KioskScreen'
 import { getConfig, getIssues } from '@/lib/config'
 
 /**
@@ -6,22 +7,31 @@ import { getConfig, getIssues } from '@/lib/config'
  *
  * The first thing the guest sees is "THANK YOU FOR TELLING US." — not an
  * apology, not a defence. The job of this screen is to move them from anger to
- * expression, which means thanking them for the thing they were worried would
- * annoy us.
+ * expression, which means thanking them for the thing they expected would
+ * annoy us. The warm tint says, without words, that they are somewhere else now.
  */
 export default async function KioskIssuesPage() {
   const [config, issues] = await Promise.all([getConfig(), getIssues('negative')])
+  const px = (n: number) => `calc(${n} * var(--kpx))`
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col">
-      <header className="shrink-0 px-12 pt-12 pb-4 text-center">
-        <h1 className="font-display text-k-h1 text-ink text-balance">{config.negative.h1}</h1>
-        <p className="text-k-lead text-ink-muted mx-auto mt-5 max-w-[820px] text-pretty">
-          {config.negative.sub}
-        </p>
-      </header>
+    <KioskScreen config={config} tone="negative" density="dense">
+      <section className="flex min-h-0 flex-1 flex-col">
+        <header
+          className="shrink-0 text-center"
+          style={{ paddingInline: px(48), paddingTop: px(8), paddingBottom: px(8) }}
+        >
+          <h1 className="font-display text-k-h1 text-ink text-balance">{config.negative.h1}</h1>
+          <p
+            className="text-k-lead text-ink-muted mx-auto text-pretty"
+            style={{ marginTop: px(12), maxWidth: px(820) }}
+          >
+            {config.negative.sub}
+          </p>
+        </header>
 
-      <IssuesForm issues={issues} copy={config.negative} continueLabel={config.rate.cta} />
-    </section>
+        <IssuesForm issues={issues} copy={config.negative} continueLabel={config.rate.cta} />
+      </section>
+    </KioskScreen>
   )
 }

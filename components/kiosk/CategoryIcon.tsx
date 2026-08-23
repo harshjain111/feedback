@@ -1,39 +1,49 @@
 import {
+  Armchair,
   ConciergeBell,
   Coffee,
+  Heart,
   HeartHandshake,
   Music,
   ReceiptIndianRupee,
   Smile,
   Sparkles,
+  SprayCan,
   Timer,
+  UserRound,
   Users,
-  Utensils,
+  UtensilsCrossed,
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
 
 /**
- * Resolves a `categories.icon` value to a lucide icon.
+ * Resolves a `categories.icon` / `issues.icon` value to a lucide icon.
  *
- * A curated map rather than lucide's dynamic `icons` export on purpose: that
- * export pulls the entire icon library into the bundle, and §6 says no heavy
- * libraries on the kiosk. Unknown names fall back to a neutral mark instead of
- * breaking the screen — the settings page (Prompt 37) should offer this list as
- * a picker rather than a free-text field.
+ * A curated map rather than lucide's dynamic `icons` export: that export pulls
+ * the entire icon library into the bundle, which §6 forbids on the kiosk.
+ * Unknown names fall back rather than breaking the screen, and the settings
+ * page offers this list as a picker instead of a free-text field.
+ *
+ * `size` is in design px and rendered through --kpx, so icons scale with the
+ * screen like everything else.
  */
 const ICONS: Record<string, LucideIcon> = {
-  utensils: Utensils,
+  utensils: UtensilsCrossed,
   'concierge-bell': ConciergeBell,
   'heart-handshake': HeartHandshake,
   sparkles: Sparkles,
   coffee: Coffee,
   timer: Timer,
   users: Users,
+  'user-round': UserRound,
   wallet: Wallet,
   'receipt-indian-rupee': ReceiptIndianRupee,
   music: Music,
   smile: Smile,
+  armchair: Armchair,
+  'spray-can': SprayCan,
+  heart: Heart,
 }
 
 export const AVAILABLE_ICONS = Object.keys(ICONS)
@@ -48,5 +58,14 @@ export function CategoryIcon({
   size?: number
 }) {
   const Icon = ICONS[name] ?? Smile
-  return <Icon className={className} size={size} strokeWidth={1.6} aria-hidden="true" />
+  const dimension = `calc(${size} * var(--kpx))`
+
+  return (
+    <Icon
+      className={className}
+      style={{ width: dimension, height: dimension }}
+      strokeWidth={1.7}
+      aria-hidden="true"
+    />
+  )
 }

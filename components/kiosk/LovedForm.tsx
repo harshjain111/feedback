@@ -8,11 +8,7 @@ import type { Issue } from '@/lib/config.types'
 import { getDraft, patchDraft } from '@/lib/session'
 
 /**
- * The positive pathway (§5).
- *
- * This is not a victory lap. Knowing WHAT created the delight is the management
- * signal — "4.8 overall" tells you nothing you can repeat, "Our Team, 62
- * mentions" does. Everything optional, as everywhere else.
+ * The positive pathway (§5). Everything optional, as everywhere else.
  */
 export function LovedForm({
   issues,
@@ -25,6 +21,7 @@ export function LovedForm({
 }) {
   const router = useRouter()
   const [selected, setSelected] = useState<string[]>([])
+  const px = (n: number) => `calc(${n} * var(--kpx))`
 
   useEffect(() => {
     setSelected(getDraft().lovedIds)
@@ -42,8 +39,15 @@ export function LovedForm({
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col justify-center px-12">
-        <h2 id="loved-most" className="font-display text-k-h2 text-ink mb-12 text-center">
+      <div
+        className="flex min-h-0 flex-1 flex-col justify-center"
+        style={{ paddingInline: px(40) }}
+      >
+        <h2
+          id="loved-most"
+          className="font-display text-k-h2 text-ink text-center"
+          style={{ marginBottom: px(28) }}
+        >
           {heading}
         </h2>
         <ChipGrid
@@ -51,10 +55,12 @@ export function LovedForm({
           selected={selected}
           onToggle={toggleLoved}
           labelledBy="loved-most"
+          tone="positive"
+          columns={3}
         />
       </div>
 
-      <div className="shrink-0 px-12 pt-4 pb-4">
+      <div className="shrink-0" style={{ paddingInline: px(40), paddingBlock: px(20) }}>
         <BigButton fullWidth onClick={() => router.push('/comment')}>
           {continueLabel}
         </BigButton>

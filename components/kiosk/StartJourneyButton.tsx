@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { ArrowRight } from 'lucide-react'
 import { BigButton } from './BigButton'
 import { clearDraft } from '@/lib/session'
 
@@ -22,6 +23,12 @@ export function StartJourneyButton({ label }: { label: string }) {
       }}
     >
       {label}
+      <ArrowRight
+        style={{ width: 'calc(26 * var(--kpx))', height: 'calc(26 * var(--kpx))' }}
+        strokeWidth={2.4}
+        aria-hidden="true"
+        className="ml-[calc(10*var(--kpx))] inline"
+      />
     </BigButton>
   )
 }
