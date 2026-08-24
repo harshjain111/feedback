@@ -122,21 +122,38 @@ Emotional arc: **Empowered → Safe → Heard → Acknowledged → Appreciated**
       ├─ any rating ≤ 2 ──→ [NEGATIVE: "Thank you for telling us" → issue chips → tell us more]
       └─ predominantly 4–5 → [POSITIVE: "That's wonderful to hear" → what did you love most]
       ↓
-[GENERAL COMMENT]  optional
-      ↓
-[FOLLOW-UP?]  YES, PLEASE / NO, I'M GOOD
+[GENERAL COMMENT]  optional — folded into the branch screen above, not its own step
       ↓
 [CONTACT]  name + phone, both optional, SKIP always visible
+      ↓
+  ✅ COMMIT to Postgres  ← feedback is saved HERE, before the photo module
+      ↓
+[MEMORY PRINT MODULE]  see PHOTO_MODULE.md — optional, skippable, non-blocking
       ↓
 [05 THANK YOU]  + grievance officer
       ↓ auto-reset to Welcome after 8s (configurable)
 ```
 
+**The follow-up screen is cut.** The brief had a `WOULD YOU LIKE US TO FOLLOW UP?`
+step between the comment and the contact screen. It asked for consent to make
+contact and was immediately followed by a screen asking for a phone number —
+the same question twice, and the second one is the only one that produces
+anything actionable. A callback is now **inferred**: a guest who had a bad visit
+and still leaves a number is asking to be contacted about it. A guest who had a
+good visit and leaves one is joining the mailing list, which is a different
+thing and must not open a case nobody needs to chase. See §9 for what this does
+to the follow-up metrics — it changes their meaning, not just their plumbing.
+
 **Routing rules**
 - Negative pathway triggers when **any single category rating ≤ 2**.
 - Positive pathway when **average ≥ 4 and no rating ≤ 2**.
 - Mixed/neutral (avg 3–3.9, none ≤2) → skip both branches, go straight to general comment.
-- If follow-up = YES, the contact screen shows a variant subheading and phone becomes *strongly encouraged* — but still never blocking. Never `required`.
+- **`follow_up_requested` is derived, never asked:** `sentiment === 'negative' && phone !== ''`.
+  On the negative branch the contact screen shows a variant subheading explaining why a number
+  helps, but the field stays optional and SKIP stays exactly as reachable. Never `required`.
+- `KEEP ME CONNECTED` is enabled only once a valid mobile number is present — guest resolution
+  keys on the phone (§7), so the button would otherwise promise a connection the submit cannot
+  store. This gates one button, not the journey: SKIP sits beneath it, full size, always live.
 
 **Session handling:** the whole journey is one draft object in `sessionStorage`. Nothing is written to Postgres until the final submit on the thank-you transition — one atomic `POST /api/feedback`. Idle timer (90s, configurable) resets to Welcome and clears the draft, so the next guest never sees the previous guest's answers.
 
@@ -213,11 +230,10 @@ The face is the **primary** interaction. **Never use stars.** Colour must regist
 - Placeholder: `YOUR THOUGHTS...`
 - Badge: `Optional` — visible, never hidden.
 
-**Follow-up**
-- H1: `WOULD YOU LIKE US TO FOLLOW UP?`
-- Support: `If you'd like, a member of our team can personally reach out to you.`
-- Buttons: `YES, PLEASE` / `NO, I'M GOOD`
-- ✗ Never "lodge a complaint" ✗ Never "speak to the manager". Resolution, not escalation.
+**Follow-up — REMOVED.** The brief's §11 screen (`WOULD YOU LIKE US TO FOLLOW UP?` /
+`YES, PLEASE` / `NO, I'M GOOD`) is cut, along with its `followup.*` config section. See §4.
+The principle it carried survives and still binds the contact and issue screens: this is
+resolution, not escalation — ✗ never "lodge a complaint", ✗ never "speak to the manager".
 
 **Contact**
 - H1: `WE'D LOVE TO STAY CONNECTED ❤️`
@@ -242,7 +258,18 @@ The face is the **primary** interaction. **Never use stars.** Colour must regist
 
 ## 6. KIOSK DESIGN CONSTRAINTS
 
+- **Confirmed hardware:** 24" FHD all-in-one, portrait floor stand, **Windows 11 IoT**, Intel
+  i3 (11th gen), 8GB/128GB, integrated front camera, built-in 80mm thermal printer with
+  auto-cutter, 2D barcode scanner (unused in Phase 1).
 - **Portrait / vertical only.** Design at 1080×1920. Do not make a desktop site responsive — this is a dedicated kiosk app.
+- **1080×1920 is a DEVICE resolution, not a CSS one.** The 24" panel reports a 1080×1920 CSS
+  viewport at devicePixelRatio 1; a DPR-2 tablet reports 540×960 for the same pixels. Author
+  everything in design pixels against the `--kpx` unit
+  (`min(100dvh / 1920, 100dvw / 1080)`) so one layout is correct on both. A build that
+  hard-codes px measures correctly in a 1080×1920 browser window and then overflows the real
+  device — that failure has already happened once here.
+- **Calibrate type for a 24" panel viewed standing at arm's length**, not a tablet held at
+  reading distance. The minimums below are floors, not targets — verify on the real screen.
 - Tap targets **minimum 88×88px**. Emoji buttons ~140px.
 - Typography large: H1 ≥ 56px, body ≥ 24px, never below 20px.
 - High contrast. Minimal text per screen. **One obvious CTA.**
@@ -359,7 +386,7 @@ Pure functions in `lib/analytics/`, unit-tested.
 | Negative % | ratings 1–2 / total |
 | Neutral % | ratings 3 / total |
 | Complaint Rate | negative feedbacks / total feedbacks |
-| Follow-up Rate | follow-up requests / total feedbacks |
+| Contactable Complaint Rate | negative feedbacks **with a phone** / negative feedbacks |
 | Resolution Rate | resolved / total complaints |
 | Avg Resolution Time | mean(`resolved_at - created_at`) |
 | Repeat Guest % | guests with >1 feedback / identified guests |
@@ -367,6 +394,31 @@ Pure functions in `lib/analytics/`, unit-tested.
 **Comparison engine (§36):** every KPI must return `{ value, previous, delta, deltaPct, direction }` for: Today vs Yesterday · Today vs 7-day avg · This week vs Last · This month vs Last · Custom vs preceding equal period.
 
 > Never render a bare number. `Service = 4.1` is a failure. `Service 4.1 ↓ 11% vs previous 7 days` is the product.
+
+**On the follow-up metrics.** The brief's *Follow-up Rate* was
+`follow-up requests / total feedbacks`, and it meant something real while a guest could tap
+`YES, PLEASE`: it measured demand for contact. With that screen cut (§4) nobody requests
+anything, so the numerator became "negative AND left a phone" — a strict subset of the
+complaint numerator. Kept as-is it would be a metric that is mathematically incapable of
+exceeding Complaint Rate, sitting next to it on the same row, with a name claiming guests
+asked for something none of them were offered.
+
+So it is **redefined, not renamed**: `Contactable Complaint Rate` divides reachable complaints
+by *complaints*, not by all feedback. That asks a question a manager can act on — "of the
+guests whose visit went wrong, what share can we actually call?" — and it is independent of
+Complaint Rate rather than nested inside it. A low value is a contact-screen problem, not a
+service problem.
+
+`Resolution Rate` is unaffected: it already divides by complaints. The **Follow-ups required**
+count is unaffected and stays the volume number. The guest filter **Follow-up Required**
+(`an open follow_ups row`) is unaffected in definition, but its population narrows — read it
+as *unresolved complainant*, since a delighted guest can no longer open a case.
+
+**Known gap this leaves.** With the opt-in gone, `follow_ups` rows are created in exactly one
+place — `POST /api/feedback` when the derived flag is true. Staff cannot open a case by hand,
+so a scathing comment from a guest who rated everything 3/5 has no route into the workflow.
+Building `openFollowUp(feedbackId)` as a MANAGER+ action closes it. Until then, "or by staff
+action" is not true of this system.
 
 **Auto-generated insights (§21, §37).** The system generates these itself — they are not hand-written:
 - `CATEGORY_DROP` — category down > X% vs previous period
@@ -413,6 +465,17 @@ Frozen header row, bold headers, auto-width, date formatting `dd-MMM-yyyy`. File
 
 **Wallet reward is OFF (§17).** Build the config keys (`rewards.enabled`, `rewards.amount`, `rewards.wallet_provider`) and the branch point in the journey, but ship with `enabled: false` and no reward UI. It must be switchable later without touching the feedback journey.
 
+**Memory Print Module is IN Phase 1 (Phase 1b).** Front-camera keepsake photo, printed on the
+built-in thermal printer after feedback commits. Full spec in **PHOTO_MODULE.md** — read it
+before building anything camera- or printer-related. Three rules govern it absolutely:
+feedback commits first; the image never leaves the machine; the keepsake is promised and
+delivered unconditionally, never tied to the rating.
+
+Its per-feedback state (`memory_offered`, `memory_printed`, `memory_retries`) is written
+**after** the feedback row commits, so it does not travel the service-role submit path. It
+gets its own narrow PATCH route and an RLS policy scoped to those three columns — the submit
+endpoint's privileges are not a convenience to be reused.
+
 **Not in Phase 1:** LLM sentiment, SMS/WhatsApp sending, POS/bill integration, multi-language, customer-facing app.
 
 ---
@@ -435,7 +498,7 @@ Frozen header row, bold headers, auto-width, date formatting `dd-MMM-yyyy`. File
 
 1. Not a generic feedback form — a Customer Experience Intelligence System.
 2. The kiosk must make the customer feel: *"You have a voice here. We are listening."*
-3. Never manipulate toward a positive rating. Use psychology for agency, permission, validation, low friction, choice and emotional closure — never for score inflation.
+3. Never manipulate toward a positive rating. Use psychology for agency, permission, validation, low friction, choice and emotional closure — never for score inflation. **This governs the Memory Print Module absolutely: the keepsake is unconditional, never mentioned during rating, and identical for a 1/5 guest and a 5/5 guest.**
 4. Preserve the finalized customer-facing language exactly unless changed via the CMS.
 5. Everything management may reasonably want to change must be dynamic.
 6. Dashboard priority order: **Problems → Trends → Insights → Actions → Raw Data.**

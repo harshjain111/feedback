@@ -14,7 +14,8 @@ export type Kpis = {
   positivePct: Comparison
   negativePct: Comparison
   complaintRate: Comparison
-  followUpRate: Comparison
+  /** Reachable complaints / complaints (§9). Null when there were none. */
+  contactableComplaintRate: Comparison
   categories: CategoryPerformance[]
 }
 

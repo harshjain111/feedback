@@ -35,7 +35,6 @@ const LOCKED_SECTIONS = [
   'negative',
   'positive',
   'comment',
-  'followup',
   'contact',
   'thanks',
   'footer',
@@ -55,7 +54,6 @@ const AUTHORED_KEYS = new Set([
   'grievance.phone',
   'grievance.email',
   'negative.chips_hint',
-  'followup.yes_sub',
   'comment.h1_short',
 ])
 
@@ -109,18 +107,23 @@ describe('0002 — locked copy', () => {
     await db.close()
   })
 
-  it('uses no forbidden escalation language on the follow-up screen', async () => {
+  it('uses no forbidden escalation language anywhere a guest can read', async () => {
+    // The follow-up screen is gone (CLAUDE.md §4) but the rule it carried is
+    // not — it was never really about that one screen. Widened to every
+    // guest-facing section rather than deleted with the screen, which is how a
+    // principle quietly stops being enforced.
     const db = await seededDb()
     const config = await rows<{ value: string }>(
       db,
-      `select value #>> '{}' as value from app_config where section = 'followup'`,
+      `select value #>> '{}' as value from app_config
+       where section in ('welcome','rate','negative','positive','comment','contact','thanks')`,
     )
     const joined = config
       .map((r) => r.value)
       .join(' ')
       .toLowerCase()
     for (const banned of ['complaint', 'lodge', 'manager']) {
-      expect(joined, `follow-up copy must not say "${banned}" (§5)`).not.toContain(banned)
+      expect(joined, `guest-facing copy must not say "${banned}" (§5)`).not.toContain(banned)
     }
     await db.close()
   })
@@ -243,6 +246,18 @@ describe('0002 — reference data', () => {
 })
 
 describe('0002 — configuration', () => {
+  it('leaves no trace of the retired follow-up screen', async () => {
+    // 0013 deleted it. A row surviving here would resurface as an editable CMS
+    // field wired to nothing, and AppConfig has no `followup` member to hold it.
+    const db = await seededDb()
+    const left = await rows<{ key: string }>(
+      db,
+      `select key from app_config where section = 'followup' or key like 'followup.%'`,
+    )
+    expect(left.map((r) => r.key)).toEqual([])
+    await db.close()
+  })
+
   it('ships the wallet reward OFF (§12)', async () => {
     const db = await seededDb()
     const row = await one<{ value: boolean }>(
@@ -291,7 +306,6 @@ describe('0002 — configuration', () => {
       'branding',
       'comment',
       'contact',
-      'followup',
       'footer',
       'grievance',
       'kiosk',

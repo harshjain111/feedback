@@ -99,17 +99,6 @@ function Body({ screen, config }: { screen: Screen; config: AppConfig }) {
           </div>
         </>
       )
-    case 'followup':
-      return (
-        <>
-          <h1 className="font-display text-k-h1 text-ink text-balance">{config.followup.h1}</h1>
-          <p className="text-k-lead text-ink-muted mt-8">{config.followup.support}</p>
-          <div className="mt-16 flex gap-8">
-            <Cta label={config.followup.yes} inline />
-            <Cta label={config.followup.no} inline secondary />
-          </div>
-        </>
-      )
     case 'contact':
       return (
         <>

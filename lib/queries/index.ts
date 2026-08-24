@@ -93,7 +93,12 @@ function summarise(rows: DailyRow[]) {
     negativePct: pct(negative),
     negativeCount: negative,
     complaintRate: pct(negative),
-    followUpRate: pct(followUps),
+    // Over complaints, not over all feedback — see contactableComplaintRate.
+    // follow_up_count IS the reachable-complaint count: the flag is derived at
+    // submit time as (sentiment = negative AND a phone was left), so a case is
+    // opened for exactly the complaints we can call back.
+    contactableComplaintRate:
+      negative === 0 ? null : Math.round((followUps / negative) * 1000) / 10,
     followUps,
   }
 }
@@ -116,7 +121,11 @@ export async function getKpis(range: DateRange): Promise<Kpis> {
     positivePct: compareOverRange(now.positivePct, before.positivePct, range),
     negativePct: compareOverRange(now.negativePct, before.negativePct, range),
     complaintRate: compareOverRange(now.complaintRate, before.complaintRate, range),
-    followUpRate: compareOverRange(now.followUpRate, before.followUpRate, range),
+    contactableComplaintRate: compareOverRange(
+      now.contactableComplaintRate,
+      before.contactableComplaintRate,
+      range,
+    ),
     categories,
   }
 }

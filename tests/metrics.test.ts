@@ -3,7 +3,7 @@ import {
   averageRating,
   avgResolutionHours,
   complaintRate,
-  followUpRate,
+  contactableComplaintRate,
   negativePct,
   neutralPct,
   positivePct,
@@ -61,7 +61,7 @@ describe('metrics — empty periods return null, never zero', () => {
 
   it('never divides by zero', () => {
     expect(complaintRate(0, 0)).toBeNull()
-    expect(followUpRate(0, 0)).toBeNull()
+    expect(contactableComplaintRate(0, 0)).toBeNull()
     expect(resolutionRate(0, 0)).toBeNull()
     expect(repeatGuestPct(0, 0)).toBeNull()
     expect(avgResolutionHours([])).toBeNull()
@@ -74,10 +74,27 @@ describe('metrics — empty periods return null, never zero', () => {
 })
 
 describe('metrics — rates', () => {
-  it('computes complaint, follow-up and resolution rates', () => {
+  it('computes complaint, contactable and resolution rates', () => {
     expect(complaintRate(3, 20)).toBe(15)
-    expect(followUpRate(5, 20)).toBe(25)
     expect(resolutionRate(7, 10)).toBe(70)
+    // 3 of 5 unhappy guests left a number.
+    expect(contactableComplaintRate(3, 5)).toBe(60)
+  })
+
+  it('keeps the contactable rate independent of the complaint rate', () => {
+    // The point of the redefinition. The old ratio divided by total feedbacks,
+    // which made it a strict fraction of complaintRate and therefore unable to
+    // say anything complaintRate did not already say. Over complaints it can
+    // reach 100% on a terrible day and 0% on a mildly bad one.
+    expect(contactableComplaintRate(4, 4)).toBe(100)
+    expect(contactableComplaintRate(0, 4)).toBe(0)
+    expect(complaintRate(4, 100)).toBe(4)
+  })
+
+  it('is null with no complaints, not 0%', () => {
+    // 0% would read as "we cannot reach any of our unhappy guests" on a day
+    // when nobody was unhappy.
+    expect(contactableComplaintRate(0, 0)).toBeNull()
   })
 
   it('averages only follow-ups that actually resolved', () => {

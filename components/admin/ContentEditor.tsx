@@ -19,7 +19,7 @@ import { cn } from '@/lib/cn'
  */
 
 type Screen = {
-  id: 'welcome' | 'rate' | 'negative' | 'positive' | 'comment' | 'followup' | 'contact' | 'thanks'
+  id: 'welcome' | 'rate' | 'negative' | 'positive' | 'comment' | 'contact' | 'thanks'
   label: string
   fields: { key: string; label: string; type?: 'text' | 'textarea' }[]
   note?: string
@@ -78,17 +78,6 @@ const SCREENS: Screen[] = [
       { key: 'comment.placeholder', label: 'Placeholder' },
       { key: 'comment.badge', label: 'Optional badge' },
     ],
-  },
-  {
-    id: 'followup',
-    label: 'Follow-up',
-    fields: [
-      { key: 'followup.h1', label: 'Headline' },
-      { key: 'followup.support', label: 'Supporting line', type: 'textarea' },
-      { key: 'followup.yes', label: 'Yes button' },
-      { key: 'followup.no', label: 'No button' },
-    ],
-    note: 'Resolution, not escalation. The words "complaint", "lodge" and "manager" must not appear here.',
   },
   {
     id: 'contact',

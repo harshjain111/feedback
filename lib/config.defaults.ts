@@ -47,13 +47,6 @@ export const CONFIG_DEFAULTS: AppConfig = {
     support:
       "As a valued customer, we'd love to keep you updated with special offers, new experiences and what's happening at All India Café.",
   },
-  followup: {
-    h1: 'WOULD YOU LIKE US TO FOLLOW UP?',
-    no: "NO, I'M GOOD",
-    support: "If you'd like, a member of our team can personally reach out to you.",
-    yes: 'YES, PLEASE',
-    yes_sub: 'I would like to hear from you',
-  },
   footer: {
     brand: 'All India Café',
     grievance_label: 'Grievance Officer',

@@ -43,14 +43,15 @@ export type KioskCopy = {
     placeholder: string
     badge: string
   }
-  followup: {
-    h1: string
-    support: string
-    yes: string
-    /** Second line under the YES button — authored, not from §5. */
-    yes_sub: string
-    no: string
-  }
+  /*
+   * There is no `followup` section. The brief's §11 screen is cut (CLAUDE.md
+   * §4) and its five strings were deleted in 0013 rather than left seeded: a
+   * config key with no screen behind it is a CMS field a manager can edit to no
+   * effect, which is worse than a missing one.
+   *
+   * `contact.followup_sub` below is a different thing and still live — the
+   * variant subheading shown on the contact screen when the visit went badly.
+   */
   contact: {
     h1: string
     support: string

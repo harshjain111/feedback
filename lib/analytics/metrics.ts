@@ -53,9 +53,30 @@ export function complaintRate(negativeFeedbacks: number, totalFeedbacks: number)
   return pct(negativeFeedbacks, totalFeedbacks)
 }
 
-/** follow-up requests / total feedbacks. */
-export function followUpRate(followUpRequests: number, totalFeedbacks: number): number | null {
-  return pct(followUpRequests, totalFeedbacks)
+/**
+ * Reachable complaints / complaints (§9).
+ *
+ * This replaces the brief's Follow-up Rate, which was
+ * `follow-up requests / total feedbacks`. That measured real demand while a
+ * guest could tap YES, PLEASE; with the follow-up screen cut (CLAUDE.md §4) the
+ * numerator became "negative AND left a phone" — a strict subset of the
+ * complaint numerator. Over `total feedbacks` it was a metric mathematically
+ * incapable of exceeding Complaint Rate, sitting beside it on the same row,
+ * named for a request nobody was offered the chance to make.
+ *
+ * Dividing by complaints instead asks something a manager can act on: of the
+ * guests whose visit went wrong, what share can we actually call? A low value
+ * is a contact-screen problem, not a service problem — and unlike the old
+ * ratio, it moves independently of Complaint Rate.
+ *
+ * Null when there were no complaints. That is the honest answer: with nothing
+ * to be reachable about, 0% and 100% are equally meaningless.
+ */
+export function contactableComplaintRate(
+  reachableComplaints: number,
+  totalComplaints: number,
+): number | null {
+  return pct(reachableComplaints, totalComplaints)
 }
 
 /** resolved / total complaints. */
