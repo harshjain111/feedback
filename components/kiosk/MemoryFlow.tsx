@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MemoryCapture, type CapturedFrame } from './MemoryCapture'
 import { MemoryOffer } from './MemoryOffer'
-import { MemoryPrinting, MemoryReview } from './MemoryReview'
 import { PrefetchNext } from './PrefetchNext'
 import type { AppConfig } from '@/lib/config.types'
 import { ratingValues, sentimentFor } from '@/lib/journey'
@@ -26,23 +25,25 @@ import { getDraft } from '@/lib/session'
  * with the page. Splitting this into routes later would quietly break the
  * module's central promise, which is why it is written down here.
  *
+ * Capture, review and print are ONE step now, in one frame: the video freezes
+ * into the photo where it stood, the buttons change, and confirming prints
+ * without announcing itself. There is no screen that tells a guest the system is
+ * working — they see their picture, they say yes, and the paper comes out.
+ *
  * ROUTE GUARD — rule 1. This mounts only when the draft carries a feedbackCode,
  * which exists only after POST /api/feedback returned. A guest who somehow lands
  * here without one goes to thank-you and the camera is never asked for. The
  * feedback is safe before the lens ever opens.
  */
 
-type Step = 'offer' | 'capture' | 'review' | 'printing'
+type Step = 'offer' | 'capture'
 
 export function MemoryFlow({ copy }: { copy: AppConfig['memory'] }) {
   const router = useRouter()
   const [step, setStep] = useState<Step>('offer')
   const [ready, setReady] = useState(false)
   const [sentiment, setSentiment] = useState<'positive' | 'neutral' | 'negative'>('neutral')
-  const [frame, setFrame] = useState<CapturedFrame | null>(null)
-  const [retries, setRetries] = useState(0)
-
-  /** Guards against a double-tap on PRINT IT sending two jobs. */
+  /** Guards against a double-tap on the confirm button sending two jobs. */
   const printing = useRef(false)
 
   /**
@@ -55,10 +56,6 @@ export function MemoryFlow({ copy }: { copy: AppConfig['memory'] }) {
    * reach, none the wiser that anything was meant to happen.
    */
   const leave = useCallback(() => {
-    setFrame((current) => {
-      if (current?.previewUrl.startsWith('blob:')) URL.revokeObjectURL(current.previewUrl)
-      return null
-    })
     router.replace('/thanks')
   }, [router])
 
@@ -85,32 +82,38 @@ export function MemoryFlow({ copy }: { copy: AppConfig['memory'] }) {
     void recordMemoryOutcome({ offered: true })
   }, [ready])
 
-  const print = useCallback(async () => {
-    if (printing.current || !frame) return
-    printing.current = true
-    setStep('printing')
+  /**
+   * Print, then leave. Never throws, never reports.
+   *
+   * The wait after a successful print is not decoration: it is long enough to
+   * read where the paper comes out and to notice it arriving. Cutting straight
+   * to thank-you leaves people walking away from a print they never saw.
+   *
+   * A failure gets no wait and no explanation — same exit, nothing said (§7).
+   */
+  const confirm = useCallback(
+    async (frame: CapturedFrame, retries: number) => {
+      if (printing.current) return
+      printing.current = true
 
-    const result = await sendPrint({
-      jpegBase64: frame.jpegBase64,
-      caption: sentiment === 'negative' ? copy.caption_line_negative : copy.caption_line,
-      dateLabel: `${copy.footer_line} · ${kioskDateLabel()}`,
-    })
+      const result = await sendPrint({
+        jpegBase64: frame.jpegBase64,
+        caption: sentiment === 'negative' ? copy.caption_line_negative : copy.caption_line,
+        dateLabel: `${copy.footer_line} · ${kioskDateLabel()}`,
+        share: copy.printer_share,
+        copies: copy.print_copies,
+      })
 
-    // Uptake only. No image, no caption, no dimensions (§12).
-    void recordMemoryOutcome({ printed: result.ok, retries })
+      // Uptake only. No image, no caption, no dimensions (§12).
+      void recordMemoryOutcome({ printed: result.ok, retries })
 
-    if (result.ok) {
-      // Long enough to read "collect it just below the screen" and notice the
-      // paper. Cutting straight to thank-you leaves people walking away from a
-      // print they never saw come out.
-      window.setTimeout(leave, 2600)
-      return
-    }
-
-    // Failed. Same exit, no explanation. Prompt 51's auto-disable is what stops
-    // the next guest being offered something the printer cannot deliver.
-    leave()
-  }, [copy, frame, leave, retries, sentiment])
+      if (result.ok) {
+        await new Promise((resolve) => window.setTimeout(resolve, 2600))
+      }
+      leave()
+    },
+    [copy, leave, sentiment],
+  )
 
   // Nothing renders until the guard has run, so a guest never sees a flash of
   // the offer on a journey that should not have reached it.
@@ -130,31 +133,9 @@ export function MemoryFlow({ copy }: { copy: AppConfig['memory'] }) {
       ) : null}
 
       {step === 'capture' ? (
-        <MemoryCapture
-          copy={copy}
-          onCaptured={(captured) => {
-            setFrame(captured)
-            setStep('review')
-          }}
-          onSkip={leave}
-        />
+        <MemoryCapture copy={copy} onConfirm={confirm} onSkip={leave} />
       ) : null}
 
-      {step === 'review' && frame ? (
-        <MemoryReview
-          copy={copy}
-          frame={frame}
-          retries={retries}
-          onRetry={() => {
-            setRetries((count) => count + 1)
-            setFrame(null)
-            setStep('capture')
-          }}
-          onKeep={() => void print()}
-        />
-      ) : null}
-
-      {step === 'printing' ? <MemoryPrinting copy={copy} /> : null}
     </>
   )
 }

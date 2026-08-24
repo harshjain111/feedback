@@ -35,6 +35,32 @@ export type PrintRequest = {
   caption: string
   dateLabel: string
   copies: number
+  /** Admin-configured printer, validated. Undefined = use the local config. */
+  share: string | undefined
+}
+
+/**
+ * Does this look like a printer, rather than a file somebody wants written?
+ *
+ * The share can now come from admin settings, which means it arrives over HTTP
+ * from a browser. That is fine for choosing a printer and not fine as a general
+ * "write these bytes here" instruction: without this check, anybody who could
+ * reach the admin could have the agent overwrite a file on the kiosk PC.
+ *
+ * Accepted: a UNC share (two backslashes, host, one backslash, share name) or a
+ * legacy device name such as LPT1 or USB001. Rejected: drive letters, relative
+ * paths, anything containing "..", and anything overlong.
+ */
+export function isPrinterTarget(value: string): boolean {
+  if (value.length === 0 || value.length > 128) return false
+  if (value.includes('..')) return false
+
+  // \\host\share — the two leading backslashes are what make it a share rather
+  // than a path, and neither segment may contain a separator or a wildcard.
+  const UNC = /^\\\\[^\\/:*?"<>|]+\\[^\\/:*?"<>|]+$/
+  if (UNC.test(value)) return true
+
+  return /^(LPT[1-9]|COM[1-9]|USB[0-9]{3})$/i.test(value)
 }
 
 export type ServerOptions = {
@@ -115,11 +141,21 @@ function parsePrintRequest(raw: string): PrintRequest {
   // Capped: a bug in the kiosk asking for 500 copies must not empty the roll.
   const resolvedCopies = Math.min(Math.max(1, (copies as number) ?? 1), 3)
 
+  // An invalid share is DROPPED, not rejected: the print should still happen on
+  // the locally configured printer. Refusing the whole job would cost a guest
+  // their keepsake over a settings typo.
+  const rawShare = body['share']
+  const share =
+    typeof rawShare === 'string' && isPrinterTarget(rawShare.trim())
+      ? rawShare.trim()
+      : undefined
+
   return {
     jpegBase64,
     caption: typeof body['caption'] === 'string' ? body['caption'] : '',
     dateLabel: typeof body['dateLabel'] === 'string' ? body['dateLabel'] : '',
     copies: resolvedCopies,
+    share,
   }
 }
 
@@ -205,15 +241,31 @@ export function createAgentServer(options: ServerOptions): Server {
       })
       composed = print.pixels
 
+      // A per-request printer when admin named one, otherwise the shared
+      // single-flight instance. Both still serialise: the request handler is
+      // awaited, so two prints cannot overlap on one connection.
+      const target =
+        request.share && request.share !== config.print.share
+          ? new Printer(windowsPrinterTransport(request.share))
+          : printer
+
       let bytes = 0
       for (let copy = 0; copy < request.copies; copy += 1) {
-        const result = await printer.print(print)
+        const result = await target.print(print)
         bytes += result.bytes
       }
 
       const ms = Number(process.hrtime.bigint() - startedAt) / 1e6
       // Dimensions and timings only. No caption, no base64, no pixels.
-      log({ event: 'printed', ms: Math.round(ms), bytes, copies: request.copies })
+      log({
+        event: 'printed',
+        ms: Math.round(ms),
+        bytes,
+        copies: request.copies,
+        // Whether the target came from admin or from the local file. Not the
+        // path itself — a share name is machine detail, not print telemetry.
+        target: request.share ? 'configured' : 'local',
+      })
       json(res, 200, { ok: true, ms: Math.round(ms) }, allowedOrigin)
     } catch (error) {
       if (error instanceof PrintError) {

@@ -74,13 +74,28 @@ export async function sendPrint(job: {
   jpegBase64: string
   caption: string
   dateLabel: string
+  /**
+   * From admin settings. Empty means "use whatever the agent has locally",
+   * which is the normal case — the share is a Windows path set once when the
+   * printer is plugged in. The agent validates anything it is sent against a
+   * printer-share shape and refuses the rest, because a browser naming an
+   * arbitrary write target on the kiosk PC is a bigger door than this needs.
+   */
+  share?: string
+  copies?: number
 }): Promise<PrintResult> {
   try {
     return await withTimeout(async (signal) => {
       const response = await fetch(`${AGENT_ORIGIN}/print`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...job, copies: 1 }),
+        body: JSON.stringify({
+          jpegBase64: job.jpegBase64,
+          caption: job.caption,
+          dateLabel: job.dateLabel,
+          copies: job.copies ?? 1,
+          ...(job.share && job.share.trim() !== '' ? { share: job.share.trim() } : {}),
+        }),
         signal,
       })
 

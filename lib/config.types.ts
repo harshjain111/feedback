@@ -195,6 +195,31 @@ export type MemoryConfig = {
   schedule_enabled: boolean
   schedule_windows: ScheduleWindow[]
 
+  // --- camera (§3) -----------------------------------------------------------
+  /**
+   * Requested, not demanded. getUserMedia treats these as ideals, so a camera
+   * that cannot manage them returns its closest match rather than failing —
+   * which is what you want on hardware you cannot inspect from here.
+   */
+  camera_width: number
+  camera_height: number
+  /**
+   * Mirrors the PREVIEW only. The captured frame is never flipped; a mirrored
+   * capture prints every T-shirt slogan backwards.
+   */
+  mirror_preview: boolean
+  /**
+   * Substring of the device label to prefer. Empty means whatever the OS calls
+   * the front camera — enough for one built-in camera, not enough for a kiosk
+   * that also has a webcam plugged in.
+   */
+  camera_label: string
+
+  // --- printer (§5, §6) --------------------------------------------------------
+  /** Windows printer share. Empty means use whatever the agent has locally. */
+  printer_share: string
+  print_copies: number
+
   // --- capture (§3) ----------------------------------------------------------
   countdown_seconds: number
   /** Retakes before KEEP is the only option. Guards the exit rush. */

@@ -149,6 +149,59 @@ export default async function SettingsMemoryPage() {
         </div>
       </Panel>
 
+      <Panel title="Camera" note="Which camera the kiosk uses, and how it is framed.">
+        <div className="divide-line divide-y">
+          <ConfigField
+            configKey="memory.camera_width"
+            label="Capture width"
+            type="number"
+            value={memory.camera_width}
+            hint="Requested, not demanded — a camera that cannot manage this gives its closest match rather than failing and costing the guest their print. Higher is better: the print is only 512px wide, but contrast and sharpening run at full resolution first."
+          />
+          <ConfigField
+            configKey="memory.camera_height"
+            label="Capture height"
+            type="number"
+            value={memory.camera_height}
+          />
+          <ConfigField
+            configKey="memory.camera_label"
+            label="Preferred camera"
+            value={memory.camera_label}
+            hint="Part of the camera's name, if the kiosk has more than one — a plugged-in webcam as well as the built-in. Leave empty to use the front-facing camera the OS reports."
+          />
+          <ConfigField
+            configKey="memory.mirror_preview"
+            label="Show the preview mirrored"
+            type="boolean"
+            value={memory.mirror_preview}
+            hint="On, because people expect a mirror and an unflipped preview makes everyone lean the wrong way. This only affects what the guest sees while posing — the photo itself is never flipped, or writing on clothing would print backwards."
+          />
+        </div>
+      </Panel>
+
+      <Panel title="Printer">
+        <div className="divide-line divide-y">
+          <ConfigField
+            configKey="memory.printer_share"
+            label="Printer share"
+            value={memory.printer_share}
+            hint={
+              'The shared name of the thermal printer on the kiosk PC, e.g. ' +
+              String.raw`\\localhost\AIC-Thermal` +
+              '. Leave empty to use whatever the print agent was installed with. Only a printer share is accepted — a file path is ignored and the print goes to the local printer instead.'
+            }
+          />
+          <ConfigField
+            configKey="memory.print_copies"
+            label="Copies per guest"
+            type="number"
+            value={memory.print_copies}
+            hint="One is almost always right. Two is for a table that wants one each — but it doubles paper use and the wait, and the agent refuses more than three whatever is set here."
+          />
+        </div>
+      </Panel>
+
       <Panel title="Taking the photo">
         <div className="divide-line divide-y">
           <ConfigField

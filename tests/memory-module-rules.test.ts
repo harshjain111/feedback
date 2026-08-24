@@ -64,7 +64,6 @@ describe('rule 2 — the photo never leaves the machine', () => {
     expect(touching.sort()).toEqual([
       'components/kiosk/MemoryCapture.tsx',
       'components/kiosk/MemoryFlow.tsx',
-      'components/kiosk/MemoryReview.tsx',
       'lib/kiosk/print-agent.ts',
     ])
   })
@@ -155,11 +154,7 @@ describe('§7 — a guest is never shown an error about a free gift', () => {
   it('routes every failure to thank-you rather than to a message', async () => {
     expect(await read('components/kiosk/MemoryFlow.tsx')).toContain("router.replace('/thanks')")
 
-    for (const file of [
-      'components/kiosk/MemoryFlow.tsx',
-      'components/kiosk/MemoryCapture.tsx',
-      'components/kiosk/MemoryReview.tsx',
-    ]) {
+    for (const file of ['components/kiosk/MemoryFlow.tsx', 'components/kiosk/MemoryCapture.tsx']) {
       const code = stripComments(await read(file))
       expect(code, `${file} must not surface an error to a guest`).not.toMatch(
         /alert\(|Something went wrong|try again/i,

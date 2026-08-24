@@ -6,7 +6,7 @@ import type { Server } from 'node:http'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import sharp from 'sharp'
 import { parseConfig } from '../lib/config.js'
-import { createAgentServer, listen } from '../lib/server.js'
+import { createAgentServer, isPrinterTarget, listen } from '../lib/server.js'
 import { PrintError, type Transport } from '../lib/printer.js'
 import rawConfig from '../config.json' with { type: 'json' }
 
@@ -296,5 +296,71 @@ describe('config on disk', () => {
     // parse config.json directly, so a change there must keep parsing.
     const onDisk = JSON.parse(await readFile(new URL('../config.json', import.meta.url), 'utf8'))
     expect(() => parseConfig(onDisk)).not.toThrow()
+  })
+})
+
+describe('the admin-supplied printer target', () => {
+  // Written as escaped literals: '\\\\host\\share' in source is the string
+  // \\host\share. Getting this wrong silently tests something else entirely,
+  // which is exactly what happened on the first attempt.
+  const UNC = '\\\\localhost\\AIC-Thermal'
+
+  it('accepts a real printer share', () => {
+    expect(isPrinterTarget(UNC)).toBe(true)
+    expect(isPrinterTarget('\\\\KIOSK-PC\\Thermal 80mm')).toBe(true)
+    expect(isPrinterTarget('LPT1')).toBe(true)
+    expect(isPrinterTarget('USB001')).toBe(true)
+  })
+
+  it('refuses anything that is a file rather than a printer', () => {
+    // The point of the check. This value now arrives over HTTP from a browser,
+    // so without it anybody who could reach the admin could have the agent
+    // overwrite a file on the kiosk PC.
+    for (const bad of [
+      'C:\\Windows\\System32\\drivers\\etc\\hosts',
+      'C:/Users/ASUS/Desktop/secret.txt',
+      './notes.txt',
+      '../../etc/passwd',
+      '\\\\localhost\\share\\..\\..\\Windows\\win.ini',
+      '/etc/passwd',
+      '\\\\localhost',
+      '\\\\',
+      '',
+      'AIC-Thermal',
+      '\\\\host\\share\\extra',
+    ]) {
+      expect(isPrinterTarget(bad), `${JSON.stringify(bad)} must be refused`).toBe(false)
+    }
+  })
+
+  it('refuses an overlong value', () => {
+    expect(isPrinterTarget(`\\\\host\\${'a'.repeat(200)}`)).toBe(false)
+  })
+
+  it('drops an invalid share instead of failing the whole print', async () => {
+    // A settings typo must not cost a guest their keepsake — the print still
+    // goes to the locally configured printer.
+    const response = await fetch(`${base}/print`, {
+      method: 'POST',
+      headers: { origin: ORIGIN, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        jpegBase64: await jpegBase64(),
+        share: 'C:\\Windows\\System32\\config\\SAM',
+      }),
+    })
+
+    expect((await response.json()).ok).toBe(true)
+    expect(sent).toHaveLength(1)
+  })
+
+  it('never logs the share path itself', async () => {
+    // A share name is machine detail, not print telemetry.
+    await fetch(`${base}/print`, {
+      method: 'POST',
+      headers: { origin: ORIGIN, 'content-type': 'application/json' },
+      body: JSON.stringify({ jpegBase64: await jpegBase64(), share: UNC }),
+    })
+
+    expect(JSON.stringify(logs)).not.toContain('AIC-Thermal')
   })
 })
