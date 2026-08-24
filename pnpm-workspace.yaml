@@ -1,3 +1,13 @@
+# The agent is a workspace member, not part of the Next.js app.
+#
+# It runs on the kiosk PC and is never deployed: .vercelignore keeps it out of
+# the upload entirely, so nothing in agent/ can end up in a serverless bundle.
+# Its own package.json owns its dependencies, and `pnpm --filter @aic/agent`
+# runs its scripts.
+packages:
+  - '.'
+  - 'agent'
+
 # Native postinstall scripts, allowed explicitly.
 #
 # pnpm 10+ blocks build scripts by default and fails the install rather than

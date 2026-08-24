@@ -1,0 +1,9 @@
+# The print agent runs on the kiosk PC. It talks to a USB thermal printer and
+# binds 127.0.0.1 — there is nothing it could usefully do in a serverless
+# function, and PHOTO_MODULE.md rule 2 says image handling never leaves the
+# device. Excluding it from the upload makes that structural rather than a
+# convention someone has to remember.
+agent/
+
+# Local previews from `pnpm pipeline:preview`.
+previews/

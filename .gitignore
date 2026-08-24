@@ -22,3 +22,6 @@ next-env.d.ts
 coverage/
 .supabase/
 
+
+# Print-agent previews — local calibration output, never committed.
+previews/

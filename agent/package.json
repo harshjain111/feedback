@@ -1,0 +1,23 @@
+{
+  "name": "@aic/agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Print agent for the Memory Print Module. Runs on the kiosk PC only — never deployed.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "pipeline:preview": "tsx cli/preview.ts"
+  },
+  "dependencies": {
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

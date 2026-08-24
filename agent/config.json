@@ -1,0 +1,40 @@
+{
+  "_comment": "Tuned ON SITE against the cafe's real evening lighting. Every value here is deliberately not compiled in — PHOTO_MODULE.md section 4. Restart the agent after editing.",
+
+  "pipeline": {
+    "aspect": { "w": 4, "h": 5 },
+
+    "autoLevels": {
+      "enabled": true,
+      "clipLowPct": 0.5,
+      "clipHighPct": 0.5
+    },
+
+    "clahe": {
+      "_comment": "windowPx is a SLIDING WINDOW IN PIXELS, not a tile count — libvips has no tile-grid CLAHE. Smaller = more local contrast. Measured: 120px is inert, 32px +3%, 16px +12%, 8px +29% but etched. clip must be a WHOLE number 1-100; sharp rejects 2.5.",
+      "enabled": true,
+      "windowPx": 24,
+      "clip": 2
+    },
+
+    "unsharp": {
+      "enabled": true,
+      "radius": 1.0,
+      "amount": 0.6
+    },
+
+    "gamma": 1.2,
+
+    "output": {
+      "width": 512,
+      "kernel": "lanczos3"
+    },
+
+    "dither": "atkinson"
+  },
+
+  "print": {
+    "_comment": "Used from Prompt 47 onward. Listed here so the file is one place.",
+    "rasterWidth": 576
+  }
+}

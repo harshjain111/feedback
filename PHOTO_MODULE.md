@@ -131,6 +131,32 @@ white, shadows go solid black. The result is punchy and graphic, the classic ear
 That is the "filter." Not an Instagram overlay: an honest aesthetic choice that makes the
 1-bit constraint read as deliberate rather than cheap.
 
+**On the CLAHE numbers — deviation from this section, measured.** "clip 2.0, 8×8 tiles" is
+OpenCV's vocabulary: divide the frame into a grid, equalise each cell, interpolate between
+them. libvips, which is what sharp calls, has no tile-grid CLAHE — its `hist_local` slides
+ONE window of the size you give it. Reading "8×8 tiles" as `window = width/8` therefore
+produces a ~120px window on a 960px crop, and a window that large sees almost the same
+histogram as the whole frame.
+
+Measured on a real textured image at clip 2, that setting left the buffer **bit-for-bit
+identical to CLAHE being switched off**. The step this table calls *the step that makes faces
+legible* was not running at all, and every other test still passed.
+
+| sliding window | local contrast | vs no CLAHE |
+|---|---|---|
+| 120px (`width/8`) | 21.65 | +0.2% — inert |
+| 32px | 22.33 | +3% |
+| 16px | 24.14 | +12% |
+| 8px | 27.83 | +29%, etched and noisy |
+
+So the knob is `clahe.windowPx` — a sliding window in **pixels**, not a tile count —
+defaulting to **24**, which measures +12% local contrast on the same image. `clip` stays 2
+and must be a whole number: sharp's `maxSlope` is "Expected integer between 0 and 100" and
+throws on 2.5.
+
+The intent of this section is unchanged and now actually happens. The literal parameters do
+not survive the library. Flagged for approval.
+
 All parameters live in the agent's `config.json` so they can be tuned on-site against the
 café's actual evening lighting without a redeploy.
 
