@@ -39,9 +39,23 @@ export type FeedbackDraft = {
 
   name: string
   phone: string
+
+  /**
+   * Set once POST /api/feedback returns. Its presence is the proof that the
+   * feedback is safely in Postgres, and the Memory Print Module's route guard
+   * turns on exactly that (PHOTO_MODULE.md rule 1): no code, no camera.
+   *
+   * The photograph itself is NOT here and must never be. sessionStorage is
+   * backed by disk, so a base64 frame parked in the draft would be the photo
+   * written to the machine — precisely what rule 2 forbids. The frame lives in
+   * a JS variable inside the /memory route for as long as it takes to print,
+   * and dies with the page.
+   */
+  feedbackCode: string | null
 }
 
-function emptyDraft(): FeedbackDraft {
+/** A fresh draft. Exported so tests can assert its shape — see §7 rule 2. */
+export function emptyDraft(): FeedbackDraft {
   return {
     submissionId: newSubmissionId(),
     startedAt: new Date().toISOString(),
@@ -53,6 +67,7 @@ function emptyDraft(): FeedbackDraft {
     followUpRequested: null,
     name: '',
     phone: '',
+    feedbackCode: null,
   }
 }
 

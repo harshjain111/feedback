@@ -145,3 +145,57 @@ describe('ratingValues', () => {
     expect(ratingValues({})).toEqual([])
   })
 })
+
+describe('the Memory Print Module in the journey (§4, PHOTO_MODULE.md §7)', () => {
+  const good = [5, 5, 5, 5]
+
+  it('sits between contact and thank-you when it is on', () => {
+    expect(routeAfter('/contact', good, true)).toBe('/memory')
+    expect(routeAfter('/memory', good, true)).toBe('/thanks')
+  })
+
+  it('vanishes completely when the kill switch is off (§8b layer 1)', () => {
+    // Not a skipped step, not a disabled screen — the journey must not route
+    // through it at all. A guest on a disabled kiosk should not be able to tell
+    // the feature exists.
+    expect(routeAfter('/contact', good, false)).toBe('/thanks')
+  })
+
+  it('defaults to off, so forgetting the flag cannot open a camera', () => {
+    // The safe default. A call site that has not been taught about the module
+    // routes past it rather than into it.
+    expect(routeAfter('/contact', good)).toBe('/thanks')
+  })
+
+  it('never appears before the commit point', () => {
+    // Rule 1: the feedback is saved before the camera opens. Nothing earlier in
+    // the journey may route to /memory, whatever the ratings.
+    for (const ratings of [
+      [1, 1, 1, 1],
+      [5, 5, 5, 5],
+      [3, 3, 3, 3],
+    ]) {
+      for (const step of ['/', '/rate', '/issues', '/loved', '/comment'] as const) {
+        expect(routeAfter(step, ratings, true), step).not.toBe('/memory')
+      }
+    }
+  })
+
+  it('is reachable on every pathway, not only the happy one (§14.3)', () => {
+    // The keepsake is unconditional. A 1/5 guest and a 5/5 guest must both be
+    // routed to it — the copy differs, the offer does not.
+    for (const ratings of [
+      [1, 1, 1, 1],
+      [5, 5, 5, 5],
+      [3, 3, 3, 3],
+    ]) {
+      let at = routeAfter('/', ratings, true)
+      const seen = new Set<string>()
+      for (let step = 0; step < 8 && at !== '/'; step += 1) {
+        seen.add(at)
+        at = routeAfter(at, ratings, true)
+      }
+      expect([...seen], JSON.stringify(ratings)).toContain('/memory')
+    }
+  })
+})

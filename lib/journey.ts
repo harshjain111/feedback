@@ -21,7 +21,15 @@ export const POSITIVE_AVERAGE_AT_LEAST = 4
 
 export type Pathway = 'negative' | 'positive' | 'neutral'
 
-export type KioskRoute = '/' | '/rate' | '/issues' | '/loved' | '/comment' | '/contact' | '/thanks'
+export type KioskRoute =
+  | '/'
+  | '/rate'
+  | '/issues'
+  | '/loved'
+  | '/comment'
+  | '/contact'
+  | '/memory'
+  | '/thanks'
 
 /** Mean of the given ratings, or null when there are none. */
 export function averageRating(ratings: number[]): number | null {
@@ -81,7 +89,11 @@ export function routeAfterRating(ratings: number[]): KioskRoute {
  * 3 has no chips to pick, so the comment IS their screen rather than an extra
  * one.
  */
-export function routeAfter(current: KioskRoute, ratings: number[]): KioskRoute {
+export function routeAfter(
+  current: KioskRoute,
+  ratings: number[],
+  memoryEnabled = false,
+): KioskRoute {
   switch (current) {
     case '/':
       return '/rate'
@@ -92,6 +104,12 @@ export function routeAfter(current: KioskRoute, ratings: number[]): KioskRoute {
     case '/comment':
       return '/contact'
     case '/contact':
+      // The Memory Print Module sits here when it is on (PHOTO_MODULE.md §7),
+      // AFTER the feedback has committed. When it is off the journey must go
+      // straight to thank-you with no trace of it — §8b layer 1 requires that a
+      // guest on a disabled kiosk cannot tell the feature exists.
+      return memoryEnabled ? '/memory' : '/thanks'
+    case '/memory':
       return '/thanks'
     case '/thanks':
       return '/'

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { emptyDraft } from '@/lib/session'
 import {
   canKeepContact,
   combineComments,
@@ -116,5 +117,28 @@ describe('canKeepContact — what enables KEEP ME CONNECTED', () => {
     for (const value of ['', '98', '1234567890', '9876543210', '+919876543210']) {
       expect(canKeepContact(value), value).toBe(value.trim() !== '' && isValidPhone(value))
     }
+  })
+})
+
+describe('the draft never carries a photograph', () => {
+  it('has no field an image could be parked in', () => {
+    // Rule 2, as a structural test. sessionStorage is written to disk by the
+    // browser, so a base64 frame in the draft IS the photo written to the
+    // machine. The frame lives in a React ref inside the /memory route and dies
+    // with the page; if a field named like image data ever appears here, that
+    // has stopped being true.
+    const keys = Object.keys(emptyDraft())
+
+    for (const key of keys) {
+      expect(key, `draft.${key} looks like it holds image data`).not.toMatch(
+        /photo|image|jpeg|jpg|png|frame|capture|selfie|snapshot/i,
+      )
+    }
+  })
+
+  it('carries the feedback code that gates the camera', () => {
+    // Rule 1's mechanism: /memory mounts only when this is set, and it is set
+    // only after POST /api/feedback returns.
+    expect(emptyDraft().feedbackCode).toBeNull()
   })
 })
