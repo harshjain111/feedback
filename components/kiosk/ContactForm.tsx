@@ -118,7 +118,7 @@ export function ContactForm({
     <>
       <PrefetchNext routes={['/thanks', '/memory']} />
 
-      <header className="shrink-0 text-center" style={{ paddingInline: px(48), paddingTop: px(8) }}>
+      <header className="shrink-0 text-center" style={{ paddingInline: px(48), paddingTop: px(34) }}>
         <h1 className="font-display text-k-h1 text-ink text-balance">{copy.h1}</h1>
         {/*
           The variant subheading depends on an answer that only exists in the

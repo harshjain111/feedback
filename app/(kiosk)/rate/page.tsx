@@ -22,14 +22,20 @@ export default async function KioskRatePage() {
   return (
     <KioskScreen config={config} density="dense">
       <section className="flex min-h-0 flex-1 flex-col">
+        {/*
+          The heading gets a band of its own rather than being pinned under the
+          mark. Padded top and bottom so it sits BETWEEN the logo and the first
+          card instead of crowding the logo and leaving the gap below — which is
+          how it read once the plaque replaced the small drawn mark.
+        */}
         <header
           className="shrink-0 text-center"
-          style={{ paddingInline: px(48), paddingTop: px(8), paddingBottom: px(16) }}
+          style={{ paddingInline: px(48), paddingTop: px(40), paddingBottom: px(40) }}
         >
           <h1 className="font-display text-k-h1 text-ink">{config.rate.h1}</h1>
           <p
             className="text-k-lead text-ink-muted mx-auto text-pretty"
-            style={{ marginTop: px(10), maxWidth: px(820) }}
+            style={{ marginTop: px(14), maxWidth: px(820) }}
           >
             {config.rate.sub}
           </p>

@@ -15,9 +15,15 @@ export default async function KioskLovedPage() {
   return (
     <KioskScreen config={config} tone="positive">
       <section className="flex min-h-0 flex-1 flex-col">
+        {/*
+          Padded top and bottom so the headline sits BETWEEN the mark and the
+          content rather than under the mark with the gap below it. Tuned once
+          the plaque replaced the small drawn stamp, which is about twice its
+          height.
+        */}
         <header
           className="shrink-0 text-center"
-          style={{ paddingInline: px(48), paddingTop: px(8), paddingBottom: px(8) }}
+          style={{ paddingInline: px(48), paddingTop: px(34), paddingBottom: px(30) }}
         >
           <h1 className="font-display text-k-h1 text-ink text-balance">{config.positive.h1}</h1>
           <p

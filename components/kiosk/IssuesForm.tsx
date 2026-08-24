@@ -65,7 +65,7 @@ export function IssuesForm({
 
       <div
         className="flex min-h-0 flex-1 flex-col"
-        style={{ gap: px(22), paddingInline: px(44), paddingTop: px(12) }}
+        style={{ gap: px(34), paddingInline: px(44), paddingTop: px(4) }}
       >
         <div>
           <h2

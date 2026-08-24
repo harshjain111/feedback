@@ -20,7 +20,7 @@ export default async function KioskCommentPage() {
       <section className="flex min-h-0 flex-1 flex-col">
         <header
           className="shrink-0 text-center"
-          style={{ paddingInline: px(48), paddingTop: px(8), paddingBottom: px(4) }}
+          style={{ paddingInline: px(48), paddingTop: px(34), paddingBottom: px(24) }}
         >
           <h1 className="font-display text-k-h2 text-ink text-balance">{config.comment.h1}</h1>
           <p

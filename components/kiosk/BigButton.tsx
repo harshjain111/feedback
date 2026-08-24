@@ -25,6 +25,15 @@ type CommonProps = {
   /** Optional second line, as on the follow-up screen in the reference. */
   subLabel?: string
   icon?: React.ReactNode
+  /**
+   * Multiplier on the whole button — label, padding and minimum height together.
+   *
+   * Scaled as a group rather than by a CSS transform, so the tap target grows
+   * with the picture. A transform would leave a 104px hit area sitting under a
+   * larger-looking button, which is the kind of thing nobody notices until a
+   * guest taps the edge and nothing happens.
+   */
+  scale?: number
 }
 
 type ButtonProps = CommonProps & {
@@ -43,10 +52,12 @@ function Inner({
   children,
   subLabel,
   icon,
+  scale = 1,
 }: {
   children: React.ReactNode
   subLabel?: string
   icon?: React.ReactNode
+  scale?: number
 }) {
   return (
     <span
@@ -55,7 +66,14 @@ function Inner({
     >
       {icon}
       <span className="flex flex-col items-center leading-tight">
-        <span className="text-k-h3 font-semibold tracking-wide">{children}</span>
+        <span
+          className="text-k-h3 font-semibold tracking-wide"
+          // text-k-h3 is 40 design px; restate it scaled rather than adding a
+          // second size token for one button.
+          style={scale === 1 ? undefined : { fontSize: `calc(40 * ${scale} * var(--kpx))` }}
+        >
+          {children}
+        </span>
         {subLabel ? <span className="text-k-micro font-normal opacity-80">{subLabel}</span> : null}
       </span>
     </span>
@@ -75,10 +93,24 @@ function classes(variant: Variant, fullWidth: boolean, className?: string) {
 }
 
 export function BigButton(props: ButtonProps | LinkProps) {
-  const { children, variant = 'primary', className, fullWidth = false, subLabel, icon } = props
+  const {
+    children,
+    variant = 'primary',
+    className,
+    fullWidth = false,
+    subLabel,
+    icon,
+    scale = 1,
+  } = props
+
   const padding = {
-    paddingInline: 'calc(40 * var(--kpx))',
-    paddingBlock: 'calc(22 * var(--kpx))',
+    paddingInline: `calc(40 * ${scale} * var(--kpx))`,
+    paddingBlock: `calc(22 * ${scale} * var(--kpx))`,
+    // k-tap and k-cta set their minimums in CSS; a scaled button has to restate
+    // them or it would shrink back to the unscaled floor.
+    ...(scale === 1
+      ? {}
+      : { minHeight: `calc(120 * ${scale} * var(--kpx))`, minWidth: `calc(104 * ${scale} * var(--kpx))` }),
   }
 
   if ('href' in props && props.href !== undefined) {
@@ -89,7 +121,7 @@ export function BigButton(props: ButtonProps | LinkProps) {
         style={padding}
         className={classes(variant, fullWidth, className)}
       >
-        <Inner subLabel={subLabel} icon={icon}>
+        <Inner subLabel={subLabel} icon={icon} scale={scale}>
           {children}
         </Inner>
       </Link>
@@ -105,7 +137,7 @@ export function BigButton(props: ButtonProps | LinkProps) {
       style={padding}
       className={classes(variant, fullWidth, className)}
     >
-      <Inner subLabel={subLabel} icon={icon}>
+      <Inner subLabel={subLabel} icon={icon} scale={scale}>
         {children}
       </Inner>
     </button>

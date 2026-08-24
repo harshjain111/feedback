@@ -62,13 +62,13 @@ export function LovedForm({
 
       <div
         className="flex min-h-0 flex-1 flex-col"
-        style={{ gap: px(24), paddingInline: px(44), paddingTop: px(12) }}
+        style={{ gap: px(34), paddingInline: px(44), paddingTop: px(4) }}
       >
         <div>
           <h2
             id="loved-most"
             className="font-display text-k-h2 text-ink text-center"
-            style={{ marginBottom: px(20) }}
+            style={{ marginBottom: px(26) }}
           >
             {heading}
           </h2>

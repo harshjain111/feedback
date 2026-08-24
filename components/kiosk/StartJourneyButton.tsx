@@ -15,7 +15,20 @@ import { clearDraft } from '@/lib/session'
  * No arrow icon: §5 locks the label as "SHARE YOUR FEEDBACK →", arrow included.
  * Adding a lucide arrow on top rendered the button with two of them.
  */
-export function StartJourneyButton({ label }: { label: string }) {
+export function StartJourneyButton({
+  label,
+  /**
+   * Multiplier on the button's own size. The welcome screen sets 1.05 because
+   * this is the only control on it and the only thing a guest has to find from
+   * across a room; everywhere else a CTA sits beside another and matching them
+   * matters more than standing out.
+   *
+   */
+  scale = 1,
+}: {
+  label: string
+  scale?: number
+}) {
   const router = useRouter()
 
   return (
@@ -23,6 +36,7 @@ export function StartJourneyButton({ label }: { label: string }) {
       <PrefetchNext routes={['/rate']} />
       <BigButton
         className="k-cta"
+        scale={scale}
         onClick={() => {
           clearDraft()
           router.push('/rate')

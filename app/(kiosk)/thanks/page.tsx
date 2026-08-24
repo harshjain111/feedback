@@ -23,28 +23,35 @@ export default async function KioskThanksPage() {
   return (
     <KioskScreen config={config} density="airy">
       <section className="flex min-h-0 flex-1 flex-col">
+        {/*
+          Bands, not one centred block. Centring pooled every spare pixel into a
+          single gap directly under the mark, which is the emptiest place it
+          could possibly go on the one screen a guest lingers on.
+        */}
         <div
-          className="flex flex-1 flex-col items-center justify-center text-center"
-          style={{ paddingInline: px(64) }}
+          className="flex min-h-0 flex-1 flex-col items-center text-center"
+          style={{ paddingInline: px(64), paddingTop: px(40) }}
         >
           <h1 className="font-display text-k-h1 text-ink text-balance">{thanks.h1}</h1>
 
           <p
             className="text-k-lead text-ink-soft text-pretty"
-            style={{ marginTop: px(28), maxWidth: px(840) }}
+            style={{ marginTop: px(26), maxWidth: px(840) }}
           >
             {thanks.body}
           </p>
 
-          <p className="font-display text-k-h2 text-accent" style={{ marginTop: px(36) }}>
-            {thanks.line}
-          </p>
+          {/* "You spoke. We listened." is the whole product in four words, so it
+              gets the middle of the screen rather than a margin. */}
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <p className="font-display text-k-h2 text-accent">{thanks.line}</p>
 
-          <p className="text-k-body text-ink-muted" style={{ marginTop: px(20) }}>
-            {thanks.support}
-          </p>
+            <p className="text-k-body text-ink-muted" style={{ marginTop: px(18) }}>
+              {thanks.support}
+            </p>
+          </div>
 
-          <div className="flex justify-center" style={{ marginTop: px(44) }}>
+          <div className="flex shrink-0 justify-center" style={{ paddingBottom: px(28) }}>
             <SubmitAndReset seconds={config.kiosk.thanks_seconds} />
           </div>
         </div>

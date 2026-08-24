@@ -41,7 +41,7 @@ export function MemoryOffer({
     <>
       <div
         className="flex min-h-0 flex-1 flex-col items-center justify-center text-center"
-        style={{ paddingInline: px(56) }}
+        style={{ paddingInline: px(56), paddingTop: px(34) }}
       >
         <h1 className="font-display text-k-h1 text-ink text-balance">{heading}</h1>
 
