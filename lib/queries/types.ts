@@ -39,6 +39,18 @@ export type TrendPoint = {
   count: number
 }
 
+/** Memory Print Module uptake (PHOTO_MODULE.md §8). No image data, ever. */
+export type MemoryUptake = {
+  /** Guests shown the offer screen — the denominator, including the noes. */
+  offered: number
+  printed: number
+  /** Null when nothing was offered; 0% of nobody is not a fact. */
+  uptakePct: number | null
+  retries: number
+  /** Estimated, not measured — a printer share cannot report its roll (§6). */
+  paperMetres: number
+}
+
 /** One bar of the rating histogram — the shape an average hides (§25). */
 export type RatingBucket = {
   value: number

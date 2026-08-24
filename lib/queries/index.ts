@@ -10,6 +10,7 @@ import type {
   CategoryStatus,
   IssueCount,
   Kpis,
+  MemoryUptake,
   RatingBucket,
   ThemeCount,
   TodaySnapshot,
@@ -237,6 +238,51 @@ export async function getTrend(range: DateRange): Promise<TrendPoint[]> {
       count: row?.feedback_count ?? 0,
     }
   })
+}
+
+/**
+ * Memory Print Module uptake (PHOTO_MODULE.md §8).
+ *
+ * Three booleans and a count — there is nothing else to report, because there
+ * is nothing else stored. No image ever reaches this database.
+ *
+ * `offered` is the denominator on purpose: it counts the guests who saw the
+ * screen, including everyone who said no thanks. Dividing prints by total
+ * feedback instead would blame the module for journeys it was never part of —
+ * a disabled evening, or a kiosk that skipped it because the write queued.
+ *
+ * Paper is estimated rather than measured. A share is write-only (§6), so
+ * nothing can report the roll; 113mm is the measured length of a composed print
+ * at the shipped layout.
+ */
+export async function getMemoryUptake(range: DateRange): Promise<MemoryUptake> {
+  const client = await db()
+
+  const { data, error } = await client
+    .from('feedback')
+    .select('memory_offered, memory_printed, memory_retries')
+    .eq('outlet_id', await outletId())
+    .gte('local_date', range.from)
+    .lte('local_date', range.to)
+
+  if (error) throw new Error(`Memory uptake failed: ${error.message}`)
+
+  const rows = data ?? []
+  const offered = rows.filter((row) => row.memory_offered).length
+  const printed = rows.filter((row) => row.memory_printed).length
+  const retries = rows.reduce((sum, row) => sum + (row.memory_retries ?? 0), 0)
+
+  const MM_PER_PRINT = 113
+
+  return {
+    offered,
+    printed,
+    // Null rather than 0 when nothing was offered: "0% of nobody took one" is
+    // not a fact about the module, and a red 0% on a disabled day is a lie.
+    uptakePct: offered === 0 ? null : Math.round((printed / offered) * 1000) / 10,
+    retries,
+    paperMetres: Math.round((printed * MM_PER_PRINT) / 100) / 10,
+  }
 }
 
 /**

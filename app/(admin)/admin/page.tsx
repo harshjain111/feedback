@@ -8,6 +8,7 @@ import { InsightCard, InsightsEmpty } from '@/components/admin/InsightCard'
 import { IssueBars } from '@/components/admin/IssueBars'
 import { KioskStatus } from '@/components/admin/KioskStatus'
 import { KpiCard } from '@/components/admin/KpiCard'
+import { MemoryUptakePanel } from '@/components/admin/MemoryUptakePanel'
 import { Panel } from '@/components/admin/Panel'
 import { RatingDonut } from '@/components/admin/RatingDonut'
 import { RecentFeedback } from '@/components/admin/RecentFeedback'
@@ -22,6 +23,7 @@ import { can } from '@/lib/permissions'
 import {
   getFeedbackList,
   getKpis,
+  getMemoryUptake,
   getRatingDistribution,
   getTodaySnapshot,
   getTopIssues,
@@ -53,7 +55,19 @@ export default async function AdminTodayPage({
   const params = await searchParams
   const range = parseRange(params)
 
-  const [config, scale, kpis, snapshot, topIssues, topWins, insights, trend, distribution, recent] =
+  const [
+    config,
+    scale,
+    kpis,
+    snapshot,
+    topIssues,
+    topWins,
+    insights,
+    trend,
+    distribution,
+    recent,
+    memory,
+  ] =
     await Promise.all([
       getConfig(),
       getRatingScale(),
@@ -65,6 +79,7 @@ export default async function AdminTodayPage({
       getTrend(range),
       getRatingDistribution(range),
       getFeedbackList({ from: range.from, to: range.to }, { page: 1, pageSize: 6 }),
+      getMemoryUptake(range),
     ])
 
   const supabase = await createClient()
@@ -219,6 +234,18 @@ export default async function AdminTodayPage({
           />
         </Panel>
       </section>
+
+      {/* 6b — the keepsake, if it is switched on at all */}
+      {config.memory.enabled ? (
+        <section>
+          <Panel
+            title="Memory prints"
+            note="Uptake is prints over guests who were OFFERED one — not over all feedback."
+          >
+            <MemoryUptakePanel uptake={memory} />
+          </Panel>
+        </section>
+      ) : null}
 
       {/* 7 — raw data, last (§14.6) */}
       <section>

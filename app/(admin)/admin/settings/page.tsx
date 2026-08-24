@@ -1,14 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import {
-  ArrowRight,
-  ListOrdered,
-  MessageSquareText,
-  Palette,
-  Phone,
-  SlidersHorizontal,
-  Smile,
-} from 'lucide-react'
+import { ArrowRight, Camera, ListOrdered, MessageSquareText, Palette, Phone, SlidersHorizontal, Smile } from 'lucide-react'
 import { SectionHeading } from '@/components/admin/SectionHeading'
 import { requireUser } from '@/lib/auth'
 import { can } from '@/lib/permissions'
@@ -55,6 +47,12 @@ const SECTIONS = [
     icon: SlidersHorizontal,
     title: 'Thresholds, alerts and privacy',
     description: 'When the dashboard raises a flag, and how long data is kept.',
+  },
+  {
+    href: '/admin/settings/memory',
+    icon: Camera,
+    title: 'Memory prints',
+    description: 'The free keepsake photo — copy, the kill switch and the thermal logo.',
   },
 ]
 

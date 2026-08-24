@@ -1,9 +1,13 @@
 import { Suspense } from 'react'
 import { DateRangeFilter } from '@/components/admin/DateRangeFilter'
 import { OutletSelector } from '@/components/admin/OutletSelector'
+import { DeviceHealth } from '@/components/admin/DeviceHealth'
 import { Sidebar } from '@/components/admin/Sidebar'
 import { requireUser } from '@/lib/auth'
-import { getOutlet } from '@/lib/config'
+import { getConfig, getOutlet } from '@/lib/config'
+import { can } from '@/lib/permissions'
+import { memorySwitch, BLOCKED_LABELS } from '@/lib/memory-switch'
+import { createClient } from '@/lib/supabase/server'
 
 /**
  * The admin shell (§19).
@@ -28,7 +32,28 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser()
-  const outlet = await getOutlet()
+  const [outlet, config] = await Promise.all([getOutlet(), getConfig()])
+
+  /*
+   * Device health, read straight from the kiosk's own heartbeat (§6). Cheap —
+   * one row — and it belongs in the layout rather than on the dashboard because
+   * a printer that jammed while a manager is reading the feedback list is still
+   * a printer that jammed.
+   */
+  const supabase = await createClient()
+  const { data: kiosk } = await supabase
+    .from('kiosks')
+    .select('printer_status, camera_status')
+    .eq('outlet_id', user.outletId)
+    .eq('active', true)
+    .limit(1)
+    .maybeSingle()
+
+  const state = memorySwitch(config.memory)
+  const blockedReason =
+    state.blockedBy === null || state.blockedBy === 'master'
+      ? null
+      : BLOCKED_LABELS[state.blockedBy]
 
   return (
     <div className="flex min-h-dvh" style={{ background: 'var(--color-admin-bg)' }}>
@@ -37,6 +62,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="border-line bg-surface flex flex-wrap items-center justify-between gap-4 border-b px-6 py-3">
           <OutletSelector name={outlet.name} code={outlet.code} />
+
+          <DeviceHealth
+            printerStatus={kiosk?.printer_status ?? 'unknown'}
+            cameraStatus={kiosk?.camera_status ?? 'unknown'}
+            memoryEnabled={config.memory.enabled}
+            canToggle={can(user, 'manage:cms')}
+            blockedReason={blockedReason}
+          />
           {/* useSearchParams needs a Suspense boundary to keep the rest of the
               shell statically renderable. */}
           <Suspense fallback={null}>
