@@ -36,7 +36,9 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'portrait',
 
     // The ivory ground, so the splash screen is the app rather than a white
-    // flash before it.
+    // flash before it. The icon is black — that is the Vibrnd mark's own
+    // presentation, and an app icon sits on a wallpaper rather than inside this
+    // palette. The two are deliberately different and neither is a mistake.
     background_color: '#fbf6ec',
     theme_color: '#0f5132',
 
