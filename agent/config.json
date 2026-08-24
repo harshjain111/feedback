@@ -34,7 +34,10 @@
   },
 
   "print": {
-    "_comment": "Used from Prompt 47 onward. Listed here so the file is one place.",
-    "rasterWidth": 576
+    "_comment": "rasterWidth is the print head in dots — 576 for 80mm at 203dpi. share is the Windows printer share the raw ESC/POS goes to; the driver must be raw/pass-through or the spooler reformats the raster. font is the caption face; see assets/README.md before swapping it.",
+    "rasterWidth": 576,
+    "share": "",
+    "font": "",
+    "logo": ""
   }
 }

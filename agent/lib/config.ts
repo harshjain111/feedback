@@ -32,9 +32,20 @@ export type PipelineConfig = {
   dither: DitherName
 }
 
+export type PrintConfig = {
+  /** Print head width in dots. 576 = 80mm at 203dpi. */
+  rasterWidth: number
+  /** Windows printer share, e.g. \\localhost\AIC-Thermal. Empty = do not print. */
+  share: string
+  /** Caption font. Empty = the bundled assets/caption.ttf. */
+  font: string
+  /** Pre-dithered 1-bit logo. Empty = print without one. */
+  logo: string
+}
+
 export type AgentConfig = {
   pipeline: PipelineConfig
-  print: { rasterWidth: number }
+  print: PrintConfig
 }
 
 export class ConfigError extends Error {
@@ -66,6 +77,14 @@ function int(source: Record<string, unknown>, key: string, path: string, min: nu
   const value = num(source, key, path, min, max)
   if (!Number.isInteger(value)) {
     throw new ConfigError(`${path}.${key} must be a whole number, got ${value}`)
+  }
+  return value
+}
+
+function str(source: Record<string, unknown>, key: string, path: string): string {
+  const value = source[key]
+  if (typeof value !== 'string') {
+    throw new ConfigError(`${path}.${key} must be a string, got ${JSON.stringify(value)}`)
   }
   return value
 }
@@ -179,7 +198,16 @@ export function parseConfig(raw: unknown): AgentConfig {
 
   return {
     pipeline,
-    print: { rasterWidth: int(print, 'rasterWidth', 'print', 64, 1024) },
+    print: {
+      rasterWidth: int(print, 'rasterWidth', 'print', 64, 1024),
+      // Empty strings are meaningful defaults, not missing values: no share
+      // means "compose but do not send", no font means the bundled one, no logo
+      // means print without one. A missing logo is never a reason to deny a
+      // guest their keepsake (PHOTO_MODULE.md §7).
+      share: str(print, 'share', 'print'),
+      font: str(print, 'font', 'print'),
+      logo: str(print, 'logo', 'print'),
+    },
   }
 }
 

@@ -10,12 +10,15 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "pipeline:preview": "tsx cli/preview.ts"
+    "pipeline:preview": "tsx cli/preview.ts",
+    "print:test": "tsx cli/print-test.ts"
   },
   "dependencies": {
+    "opentype.js": "^2.0.0",
     "sharp": "^0.35.3"
   },
   "devDependencies": {
+    "@types/opentype.js": "^1.3.10",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
