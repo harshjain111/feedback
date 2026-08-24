@@ -28,7 +28,13 @@ beforeAll(async () => {
   }
 })
 
-/** Sections whose strings are locked copy, minus the keys we authored. */
+/**
+ * Sections whose strings are locked copy, minus the keys we authored.
+ *
+ * `memory` is deliberately absent: PHOTO_MODULE.md §9 is a draft for client
+ * approval, not §5 locked copy, so its strings are free to be refined in the
+ * CMS without failing this check. It gets its own coverage below.
+ */
 const LOCKED_SECTIONS = [
   'welcome',
   'rate',
@@ -258,6 +264,136 @@ describe('0002 — configuration', () => {
     await db.close()
   })
 
+  it('gives the photo nowhere to be stored (PHOTO_MODULE.md rule 2)', async () => {
+    // The load-bearing test of the whole module. Rule 2 is not "we delete it
+    // afterwards" — the image must have no path off the device, and the first
+    // place that promise gets quietly broken is a column to park one in "for
+    // now". So: no column anywhere in the schema may look like it holds image
+    // data, and feedback in particular may carry only the three booleans.
+    const db = await seededDb()
+
+    const suspicious = await rows<{ table_name: string; column_name: string }>(
+      db,
+      `select table_name, column_name
+       from information_schema.columns
+       where table_schema = 'public'
+         and (
+           column_name ~* '(photo|image|jpeg|jpg|png|snapshot|selfie|capture|thumbnail|avatar)'
+           or (data_type = 'bytea')
+         )
+       order by table_name, column_name`,
+    )
+    expect(
+      suspicious.map((r) => `${r.table_name}.${r.column_name}`),
+      'no column may hold, or look like it holds, an image',
+    ).toEqual([])
+
+    const memoryColumns = await rows<{ column_name: string }>(
+      db,
+      `select column_name from information_schema.columns
+       where table_schema = 'public' and table_name = 'feedback'
+         and column_name like 'memory%'
+       order by column_name`,
+    )
+    expect(memoryColumns.map((r) => r.column_name)).toEqual([
+      'memory_offered',
+      'memory_printed',
+      'memory_retries',
+    ])
+
+    await db.close()
+  })
+
+  it('lets the kiosk write only the three photo booleans (CLAUDE.md §12)', async () => {
+    // The narrow write path. anon must be able to record uptake and nothing
+    // else — enforced by a column-level GRANT, so a bug in the photo layer
+    // cannot reach comment, overall_score or status even if the route asks it
+    // to. Reusing the submit endpoint's service-role client would have made the
+    // blast radius the whole table.
+    const db = await seededDb()
+
+    const granted = await rows<{ column_name: string; privilege_type: string }>(
+      db,
+      `select column_name, privilege_type
+       from information_schema.column_privileges
+       where table_schema = 'public' and table_name = 'feedback' and grantee = 'anon'
+       order by column_name`,
+    )
+
+    expect(granted.map((r) => r.column_name)).toEqual([
+      'memory_offered',
+      'memory_printed',
+      'memory_retries',
+    ])
+    expect([...new Set(granted.map((r) => r.privilege_type))]).toEqual(['UPDATE'])
+
+    await db.close()
+  })
+
+  it('seeds the memory module switched on, with all three kill-switch layers', async () => {
+    const db = await seededDb()
+    const config = await rows<{ key: string; value: string }>(
+      db,
+      `select key, value::text as value from app_config where section = 'memory' order by key`,
+    )
+    const byKey = new Map(config.map((r) => [r.key, r.value]))
+
+    // Layer 1 on, layer 2 armed, layer 3 dormant (§8b).
+    expect(byKey.get('memory.enabled')).toBe('true')
+    expect(byKey.get('memory.auto_disable_on_failure')).toBe('true')
+    expect(byKey.get('memory.failure_threshold')).toBe('3')
+    expect(byKey.get('memory.schedule_enabled')).toBe('false')
+
+    // Atkinson, not Floyd-Steinberg. §4 is explicit that this is the product's
+    // look and not a tuning preference — 3/4 error diffusion stays punchy where
+    // full diffusion goes grey on thermal paper.
+    expect(byKey.get('memory.pipeline')).toContain('atkinson')
+
+    // The thermal logo must stay empty until a person prepares a 1-bit asset.
+    // Defaulting it to the web logo would print a grey smear at 203dpi (§5).
+    expect(byKey.get('memory.thermal_logo_url')).toBe('""')
+
+    await db.close()
+  })
+
+  it('offers the keepsake in the same breath whatever the rating (§14.3)', async () => {
+    // Non-negotiable #3. The negative branch gets a different register, never a
+    // lesser gift and never a condition — so neither copy set may hint that the
+    // print depends on anything, and both must exist.
+    const db = await seededDb()
+    const config = await rows<{ key: string; value: string }>(
+      db,
+      `select key, value #>> '{}' as value from app_config where section = 'memory'`,
+    )
+    const byKey = new Map(config.map((r) => [r.key, r.value]))
+
+    for (const key of [
+      'memory.offer_heading',
+      'memory.offer_body',
+      'memory.negative_offer_heading',
+      'memory.negative_offer_body',
+    ]) {
+      expect(byKey.get(key), `${key} must be seeded`).toBeTruthy()
+    }
+
+    const offerCopy = [
+      byKey.get('memory.offer_heading'),
+      byKey.get('memory.offer_body'),
+      byKey.get('memory.negative_offer_heading'),
+      byKey.get('memory.negative_offer_body'),
+      byKey.get('memory.take_cta'),
+    ]
+      .join(' ')
+      .toLowerCase()
+
+    // Anything transactional turns a gift into leverage on the rating.
+    for (const banned of ['if you', 'in return', 'because you', 'reward', 'earn', 'qualify']) {
+      expect(offerCopy, `keepsake copy must not say "${banned}" (§14.3)`).not.toContain(banned)
+    }
+
+    await db.close()
+  })
+
   it('ships the wallet reward OFF (§12)', async () => {
     const db = await seededDb()
     const row = await one<{ value: boolean }>(
@@ -309,6 +445,7 @@ describe('0002 — configuration', () => {
       'footer',
       'grievance',
       'kiosk',
+      'memory',
       'negative',
       'positive',
       'privacy',

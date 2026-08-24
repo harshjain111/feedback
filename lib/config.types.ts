@@ -142,6 +142,96 @@ export type AppConfig = KioskCopy & {
     retention_days: number | null
     mask_visible_digits: number
   }
+  /**
+   * Memory Print Module — PHOTO_MODULE.md.
+   *
+   * Note what is NOT here: anything to do with storing, uploading or retaining
+   * an image. There is no bucket key, no retention window, no upload endpoint,
+   * because the photo has no path off the kiosk (Rule 2). If a field for one
+   * ever seems necessary, the design has gone wrong rather than the type.
+   */
+  memory: MemoryConfig
+}
+
+/** One window the module is allowed to run in (§8b, layer 3). */
+export type ScheduleWindow = {
+  /** 0 = Sunday. Empty means every day. */
+  days: number[]
+  /** 24h local time, "HH:MM". */
+  from: string
+  to: string
+}
+
+export type MemoryPipelineConfig = {
+  /** Local contrast. THE step that makes faces legible at 1-bit (§4). */
+  clahe_clip: number
+  /** > 1 because thermal heads over-deposit and prints run dark. */
+  gamma: number
+  unsharp_amount: number
+  /**
+   * 'atkinson' diffuses only 3/4 of the error, so highlights blow clean white
+   * and shadows go solid black — punchy and graphic. Floyd–Steinberg diffuses
+   * all of it and goes grey and muddy on thermal paper. This choice is the
+   * product's look, not a tuning preference (§4).
+   */
+  dither: 'atkinson' | 'floyd-steinberg'
+}
+
+export type MemoryConfig = {
+  // --- kill switch, three layers (§8b) ---------------------------------------
+  /**
+   * Master. false removes the module from the journey entirely — no offer line,
+   * no route, and the camera is never requested, so no permission prompt and no
+   * LED. A guest on a disabled kiosk must not be able to tell it exists.
+   *
+   * Never cache this in client state across journeys: the kiosk re-reads config
+   * at the start of every journey precisely so a manager's toggle lands within
+   * seconds.
+   */
+  enabled: boolean
+  /** Self-disable after `failure_threshold` consecutive print failures. */
+  auto_disable_on_failure: boolean
+  failure_threshold: number
+  schedule_enabled: boolean
+  schedule_windows: ScheduleWindow[]
+
+  // --- capture (§3) ----------------------------------------------------------
+  countdown_seconds: number
+  /** Retakes before KEEP is the only option. Guards the exit rush. */
+  max_retries: number
+
+  // --- copy (§9), all CMS-editable per CLAUDE.md §3 --------------------------
+  offer_line_welcome: string
+  offer_heading: string
+  offer_body: string
+  take_cta: string
+  skip_cta: string
+  /** Rule 2, stated on screen before the guest decides — not in a policy page. */
+  privacy_line: string
+  /**
+   * Shown instead of the standard offer when the visit went badly. Sincere
+   * register, same gift. §14.3 forbids it being a lesser one.
+   */
+  negative_offer_heading: string
+  negative_offer_body: string
+  review_heading: string
+  retry_cta: string
+  keep_cta: string
+  printing_message: string
+  collect_message: string
+
+  // --- what is printed on the paper (§5) -------------------------------------
+  caption_line: string
+  caption_line_negative: string
+  footer_line: string
+  /**
+   * A hand-prepared 1-bit bitmap, separate from `branding.logo_url`. Thin
+   * strokes and gradients disappear at 203dpi, so auto-converting the web logo
+   * yields a grey smear. Empty until someone prepares one.
+   */
+  thermal_logo_url: string
+
+  pipeline: MemoryPipelineConfig
 }
 
 export type ConfigSection = keyof AppConfig

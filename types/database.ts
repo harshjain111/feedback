@@ -312,6 +312,9 @@ export type Database = {
           follow_up_requested: boolean
           status: string
           created_at: string
+          memory_offered: boolean
+          memory_printed: boolean
+          memory_retries: number
         }
         Insert: {
           feedback_id?: string
@@ -331,6 +334,9 @@ export type Database = {
           follow_up_requested?: boolean
           status?: string
           created_at?: string
+          memory_offered?: boolean
+          memory_printed?: boolean
+          memory_retries?: number
         }
         Update: {
           feedback_id?: string
@@ -350,6 +356,9 @@ export type Database = {
           follow_up_requested?: boolean
           status?: string
           created_at?: string
+          memory_offered?: boolean
+          memory_printed?: boolean
+          memory_retries?: number
         }
         Relationships: [
           {
@@ -709,6 +718,10 @@ export type Database = {
           active: boolean
           last_seen_at: string | null
           created_at: string
+          printer_status: string
+          camera_status: string
+          agent_version: string | null
+          status_checked_at: string | null
         }
         Insert: {
           kiosk_id?: string
@@ -717,6 +730,10 @@ export type Database = {
           active?: boolean
           last_seen_at?: string | null
           created_at?: string
+          printer_status?: string
+          camera_status?: string
+          agent_version?: string | null
+          status_checked_at?: string | null
         }
         Update: {
           kiosk_id?: string
@@ -725,6 +742,10 @@ export type Database = {
           active?: boolean
           last_seen_at?: string | null
           created_at?: string
+          printer_status?: string
+          camera_status?: string
+          agent_version?: string | null
+          status_checked_at?: string | null
         }
         Relationships: [
           {
