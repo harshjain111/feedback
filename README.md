@@ -170,7 +170,7 @@ Two things worth knowing:
 pnpm test
 ```
 
-212 tests. The database tests apply the real migrations to PGlite (Postgres
+266 app tests plus 95 in `agent/`. The database tests apply the real migrations to PGlite (Postgres
 compiled to WASM) and run as the `authenticated` role, so RLS and trigger
 privileges are actually exercised rather than assumed — a trigger that works as
 the table owner and fails under RLS is exactly the bug that shipped once here
@@ -178,3 +178,55 @@ and now has a regression test.
 
 The seed test re-reads §5 of `CLAUDE.md` on every run and fails if any
 customer-facing string has drifted from the approved wording.
+
+
+---
+
+## The Memory Print Module (Phase 1b)
+
+A free thermal-printed keepsake photo, offered after the feedback commits. Spec
+in `PHOTO_MODULE.md`; the print agent lives in `agent/` and has its own README
+covering installation, printer sharing, Chrome flags and image tuning.
+
+It runs **on the kiosk PC only**. `.vercelignore` keeps `agent/` out of the
+deployment entirely, so nothing in it can reach a serverless bundle.
+
+### Three rules, and how they are kept
+
+1. **Feedback commits first.** `POST /api/feedback` now fires when the guest
+   leaves the contact screen, not on the thank-you screen. `/memory` will not
+   mount without the `feedbackCode` that returns. A jammed printer, a revoked
+   camera permission or a dead agent can never cost you a feedback record.
+2. **The photo never leaves the machine.** Browser memory →
+   `http://127.0.0.1:9100` → printer → buffers zeroed. No upload, no bucket, no
+   disk, no image column anywhere in the schema. Not "we delete it afterwards" —
+   there is no path off the device.
+3. **Unconditional.** Offered on the welcome screen, never mentioned while a
+   guest is rating, identical for a 1/5 guest and a 5/5 guest apart from the
+   wording.
+
+All three are enforced by `tests/memory-module-rules.test.ts`, which reads the
+source and fails if any of them is quietly broken. They are silent failures by
+design, so a click-through would never catch them.
+
+### Switching it off
+
+Settings → Memory prints, or the one-tap control on the device-health badge in
+the admin header — that one exists because a manager with a jammed printer at
+9pm should not be navigating a settings tree.
+
+Off means gone: no offer line on the welcome screen, `/memory` redirects out,
+and the camera is never requested, so there is no permission prompt and no LED.
+A guest on a disabled kiosk cannot tell the feature exists.
+
+### Kiosk PC setup
+
+See `agent/README.md`. In short: share the thermal printer with a **raw /
+pass-through driver**, point `agent/config.json` at the share, install the
+Windows service with the kiosk origin, and launch Chrome with the localhost
+flags. Then work through the hardware checklist at the end of `ACCEPTANCE.md`.
+
+**Daily open checklist:** wipe the camera lens (a smear ruins every print and
+nobody reports it) and check the paper roll. Specify **BPA-free, top-coated**
+stock — it survives Guwahati humidity far better, and BPA-free matters when you
+are handing it to families.
