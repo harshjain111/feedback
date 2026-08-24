@@ -2,6 +2,7 @@ import type { Viewport } from 'next'
 import { IdleResetProvider } from '@/components/kiosk/IdleResetProvider'
 import { KioskFooter } from '@/components/kiosk/KioskFooter'
 import { KioskHeartbeat } from '@/components/kiosk/KioskHeartbeat'
+import { ServiceWorker } from '@/components/kiosk/ServiceWorker'
 import { getConfig } from '@/lib/config'
 
 /**
@@ -36,6 +37,7 @@ export default async function KioskLayout({ children }: { children: React.ReactN
         style={{ maxWidth: 'calc(1080 * var(--kpx))' }}
       >
         <KioskHeartbeat />
+      <ServiceWorker />
         <IdleResetProvider idleSeconds={config.kiosk.idle_seconds}>
           <main className="flex min-h-0 flex-1 flex-col">{children}</main>
           <KioskFooter config={config} />
