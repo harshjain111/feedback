@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
-import { loadConfig } from '../lib/config.js'
+import { loadConfig, resolveAsset } from '../lib/config.js'
 import { compose, LAYOUT } from '../lib/compose.js'
 import { bitmapToPng, runPipeline } from '../lib/pipeline.js'
 import { buildJob } from '../lib/escpos.js'
@@ -79,8 +79,8 @@ async function main() {
     footer: `All India Café · ${dateLabel()}`,
     // Empty means "not configured", which is a real state, not a missing one:
     // no logo prints without one, no font uses the bundled face.
-    logoPath: config.print.logo === '' ? undefined : config.print.logo,
-    fontPath: config.print.font === '' ? undefined : config.print.font,
+    logoPath: resolveAsset(config.print.logo),
+    fontPath: resolveAsset(config.print.font),
     rasterWidth: config.print.rasterWidth,
   })
 

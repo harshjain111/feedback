@@ -87,7 +87,25 @@ export function KioskScreen({
           className="text-accent flex shrink-0 justify-center"
           style={{ paddingTop: 'calc(18 * var(--kpx))' }}
         >
-          <BrandMark logoUrl={config.branding.logo_url} name={config.branding.name} size={84} />
+          {/*
+            Sized by HEIGHT, and three things pull on it.
+
+            The drawn fallback is a circular stamp, so 84 reads as a mark. The
+            client's logo is a landscape plaque at about 1.6:1, so the same 84
+            would be 134 wide on a 1080 screen and its two script lines would be
+            a smudge — the one thing a mark on a kiosk must not be.
+
+            But an airy screen can afford a brand moment and a dense one cannot:
+            the rate screen carries four category cards and a CTA and has about
+            a hundred design pixels of slack in total. So the mark follows the
+            density the screen already declares, rather than a number chosen for
+            the roomiest case and then regretted on the tightest.
+          */}
+          <BrandMark
+            logoUrl={config.branding.logo_url}
+            name={config.branding.name}
+            size={config.branding.logo_url ? (density === 'airy' ? 152 : 104) : 84}
+          />
         </header>
 
         {/* min-h-0 is what lets this shrink rather than pushing content off. */}

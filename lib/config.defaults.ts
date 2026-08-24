@@ -22,7 +22,7 @@ export const CONFIG_DEFAULTS: AppConfig = {
       "frame_image_url": "/artwork/frame-portrait.webp",
       "instagram_handle": "@allindiacafe",
       "instagram_url": "https://instagram.com/allindiacafe",
-      "logo_url": "",
+      "logo_url": "/brand/logo.webp",
       "name": "All India Café",
       "website_url": "https://allindiacafe.in"
     },

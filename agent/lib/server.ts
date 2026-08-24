@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
-import type { AgentConfig } from './config.js'
+import { resolveAsset, type AgentConfig } from './config.js'
 import { compose } from './compose.js'
 import { runPipeline } from './pipeline.js'
 import { Printer, PrintError, windowsPrinterTransport, type Transport } from './printer.js'
@@ -235,8 +235,8 @@ export function createAgentServer(options: ServerOptions): Server {
         photo: photo.bitmap,
         caption: request.caption,
         footer: request.dateLabel,
-        logoPath: config.print.logo === '' ? undefined : config.print.logo,
-        fontPath: config.print.font === '' ? undefined : config.print.font,
+        logoPath: resolveAsset(config.print.logo),
+        fontPath: resolveAsset(config.print.font),
         rasterWidth: config.print.rasterWidth,
       })
       composed = print.pixels

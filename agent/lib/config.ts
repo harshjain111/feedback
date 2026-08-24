@@ -39,7 +39,10 @@ export type PrintConfig = {
   share: string
   /** Caption font. Empty = the bundled assets/caption.ttf. */
   font: string
-  /** Pre-dithered 1-bit logo. Empty = print without one. */
+  /**
+   * Pre-dithered 1-bit logo, relative to the agent directory. Empty = print
+   * without one; a missing file is never a reason to deny a keepsake (§7).
+   */
   logo: string
 }
 
@@ -229,4 +232,20 @@ export async function loadConfig(path: string = DEFAULT_PATH): Promise<AgentConf
   }
 
   return parseConfig(parsed)
+}
+
+/**
+ * Turn a configured asset path into one that works wherever the agent was
+ * started from.
+ *
+ * The Windows service runs with its own working directory, so a relative path
+ * in config.json would resolve somewhere unhelpful and the logo would silently
+ * not print. Absolute paths are left alone, so a café can point at a file
+ * anywhere on the machine; empty stays empty, which means "no asset".
+ */
+export function resolveAsset(path: string): string | undefined {
+  const trimmed = path.trim()
+  if (trimmed === '') return undefined
+  if (/^([A-Za-z]:[\/]|[\/])/.test(trimmed)) return trimmed
+  return fileURLToPath(new URL(`../${trimmed}`, import.meta.url))
 }

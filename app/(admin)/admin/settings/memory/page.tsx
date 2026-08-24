@@ -264,7 +264,7 @@ export default async function SettingsMemoryPage() {
             configKey="memory.thermal_logo_url"
             label="Thermal logo"
             value={memory.thermal_logo_url}
-            hint="A separate asset from the web logo, and it must be a hand-prepared 1-bit (pure black and white) bitmap. Auto-converting a vector or a greyscale logo will NOT work: at 203dpi every thin stroke and every gradient disappears and the print comes out a grey smear. Leave empty to print without a logo."
+            hint="A path on the KIOSK PC, not a web address — the printer reads it locally. One is already bundled with the print agent, prepared from the brand plaque as line art: the solid orange field prints as paper and the white lettering as ink, which is 17% coverage instead of the 80% a filled block would cost in heat and paper. Only override this if you have another hand-prepared 1-bit asset; auto-converting a vector loses every thin stroke at 203dpi."
           />
         </div>
       </Panel>
