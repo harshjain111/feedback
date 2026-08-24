@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Print agent for the Memory Print Module. Runs on the kiosk PC only — never deployed.",
+  "description": "Print agent for the Memory Print Module. Runs on the kiosk PC only \u2014 never deployed.",
   "engines": {
     "node": ">=20"
   },
@@ -11,7 +11,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "pipeline:preview": "tsx cli/preview.ts",
-    "print:test": "tsx cli/print-test.ts"
+    "print:test": "tsx cli/print-test.ts",
+    "serve": "tsx cli/serve.ts",
+    "service:install": "node service/install.cjs",
+    "service:uninstall": "node service/uninstall.cjs"
   },
   "dependencies": {
     "opentype.js": "^2.0.0",
