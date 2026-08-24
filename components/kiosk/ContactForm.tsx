@@ -11,6 +11,7 @@ import { canKeepContact, isValidPhone } from '@/lib/phone'
 import { PrefetchNext } from './PrefetchNext'
 import { ratingValues, sentimentFor } from '@/lib/journey'
 import { getDraft, patchDraft } from '@/lib/session'
+import { submitDraft } from '@/lib/kiosk/submit'
 
 /**
  * Name and mobile number — BOTH optional, always (§5, §11).
@@ -34,15 +35,22 @@ import { getDraft, patchDraft } from '@/lib/session'
 export function ContactForm({
   copy,
   consentText,
+  memoryEnabled,
 }: {
   copy: AppConfig['contact']
   consentText: string
+  /** §8b layer 1. False means the journey must not route through /memory at all. */
+  memoryEnabled: boolean
 }) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [wantsCallback, setWantsCallback] = useState(false)
   const [touchedPhone, setTouchedPhone] = useState(false)
+  // The submit is a network round trip now, so both buttons must lock while
+  // it runs. A double-tap would otherwise start a second journey-ending
+  // navigation on top of the first.
+  const [busy, setBusy] = useState(false)
   const px = (n: number) => `calc(${n} * var(--kpx))`
 
   useEffect(() => {
@@ -72,14 +80,35 @@ export function ContactForm({
   // untouched form is noise, and the micro line already says SKIP is fine.
   const showCtaHint = !canKeep && (name.trim() !== '' || phone.trim() !== '')
 
-  const finish = (keepDetails: boolean) => {
+  /**
+   * The end of the questions, and now also the COMMIT POINT (§4).
+   *
+   * PHOTO_MODULE.md rule 1 moved the write here from the thank-you screen: the
+   * feedback must be in Postgres before the camera can open, so a jammed
+   * printer or a revoked permission can never cost a guest their record.
+   *
+   * The submit is awaited but nothing is blocked on its success. It returns a
+   * code, a queued flag, or neither, and the journey continues identically in
+   * all three cases — only the photo module cares, and it declines to run
+   * without a code rather than complaining about one.
+   */
+  const finish = async (keepDetails: boolean) => {
+    if (busy) return
+    setBusy(true)
+
     const keptPhone = keepDetails ? phone.trim() : ''
     patchDraft({
       name: keepDetails ? name.trim() : '',
       phone: keptPhone,
       followUpRequested: wantsCallback && keptPhone !== '',
     })
-    router.push('/thanks')
+
+    const { feedbackCode } = await submitDraft()
+
+    // No code means the write did not land — offline, or queued for retry. The
+    // photo module needs a committed row to attach its three booleans to, so it
+    // is skipped rather than run against nothing.
+    router.push(memoryEnabled && feedbackCode !== null ? '/memory' : '/thanks')
   }
 
   const fieldClass =
@@ -87,7 +116,7 @@ export function ContactForm({
 
   return (
     <>
-      <PrefetchNext routes={['/thanks']} />
+      <PrefetchNext routes={['/thanks', '/memory']} />
 
       <header className="shrink-0 text-center" style={{ paddingInline: px(48), paddingTop: px(8) }}>
         <h1 className="font-display text-k-h1 text-ink text-balance">{copy.h1}</h1>
@@ -208,7 +237,13 @@ export function ContactForm({
           <BigButton fullWidth className="k-cta" disabled={!canKeep} onClick={() => finish(true)}>
             {copy.cta}
           </BigButton>
-          <BigButton fullWidth variant="secondary" className="k-cta" onClick={() => finish(false)}>
+          <BigButton
+            fullWidth
+            variant="secondary"
+            className="k-cta"
+            disabled={busy}
+            onClick={() => void finish(false)}
+          >
             {copy.skip}
           </BigButton>
         </div>

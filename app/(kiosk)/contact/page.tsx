@@ -15,7 +15,11 @@ export default async function KioskContactPage() {
   return (
     <KioskScreen config={config} density="dense">
       <section className="flex min-h-0 flex-1 flex-col">
-        <ContactForm copy={config.contact} consentText={config.privacy.consent_text} />
+        <ContactForm
+          copy={config.contact}
+          consentText={config.privacy.consent_text}
+          memoryEnabled={config.memory.enabled}
+        />
       </section>
     </KioskScreen>
   )

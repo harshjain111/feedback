@@ -2,18 +2,29 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { enqueue, flush } from '@/lib/kiosk/queue'
+import { flush } from '@/lib/kiosk/queue'
+import { submitDraft } from '@/lib/kiosk/submit'
 import { clearDraft, getDraft, hasAnyRating } from '@/lib/session'
 
 /**
- * The single atomic submit, fired on the thank-you transition (§4).
+ * The safety net, and the reset (§4).
  *
- * Nothing before this screen has touched Postgres. Here the whole draft goes up
- * in one POST, the draft is wiped, and the kiosk returns to Welcome after
- * config.kiosk.thanks_seconds.
+ * This used to BE the submit. PHOTO_MODULE.md rule 1 moved the commit to the
+ * contact screen, so that the feedback is in Postgres before the camera opens
+ * and a jammed printer can never cost a guest their record.
+ *
+ * It still calls submitDraft(), and that is deliberate rather than leftover.
+ * The call is idempotent — a draft that already carries a feedbackCode returns
+ * it without a second write, and `submission_id`'s unique index (§7) would stop
+ * a duplicate even if it did. What it catches is every path that reaches
+ * thank-you without passing through contact: a journey abandoned and resumed, a
+ * future screen order, an offline submit that queued and has since come back.
+ *
+ * The alternative — trusting that contact always ran — is exactly the kind of
+ * assumption that silently loses feedback when someone reorders the journey.
  *
  * The guest never sees a failure. If the POST fails they still get their
- * thank-you and the terminal still resets — the retry queue is Prompt 43's job,
+ * thank-you and the terminal still resets; the retry queue handles the rest,
  * and an error dialog on a café wall helps nobody.
  */
 export function SubmitAndReset({ seconds }: { seconds: number }) {
@@ -29,46 +40,12 @@ export function SubmitAndReset({ seconds }: { seconds: number }) {
 
     const draft = getDraft()
 
-    const payload = {
-      submissionId: draft.submissionId,
-      ratings: draft.ratings,
-      issueIds: draft.issueIds,
-      lovedIds: draft.lovedIds,
-      issueDetail: draft.issueDetail,
-      comment: draft.comment,
-      followUpRequested: draft.followUpRequested,
-      name: draft.name,
-      phone: draft.phone,
-    }
-
     const send = async () => {
       if (!hasAnyRating(draft)) return
-
-      try {
-        const response = await fetch('/api/feedback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          keepalive: true,
-        })
-
-        if (!response.ok) {
-          // A 5xx or a rate limit is worth retrying; a validation failure is
-          // not, and queuing it would loop forever.
-          if (response.status >= 500 || response.status === 429) {
-            await enqueue(draft.submissionId, payload)
-          } else {
-            console.error('[kiosk] submit rejected:', response.status, await response.text())
-          }
-        }
-      } catch {
-        // Offline. Queue it and move on — the guest has already done their
-        // part, and an error screen would tell them about a problem only we
-        // can fix (§43).
-        await enqueue(draft.submissionId, payload)
-      } finally {
-        clearDraft()
-      }
+      // Idempotent: returns the existing code without writing when the contact
+      // screen already committed, which is the normal path.
+      await submitDraft()
+      clearDraft()
     }
 
     void send()

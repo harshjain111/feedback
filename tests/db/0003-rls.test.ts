@@ -393,3 +393,119 @@ describe('nobody writes feedback through the client', () => {
     await f.db.close()
   })
 })
+
+describe('the memory module cannot reach past its three columns', () => {
+  it('lets anon set the photo booleans on a row it knows the submission_id of', async () => {
+    const db = await freshDb()
+    const outlet = await outletId(db)
+    await asServiceRole(db)
+
+    const { submission_id } = await one<{ submission_id: string }>(
+      db,
+      `insert into feedback (outlet_id, local_date, local_time, day_of_week, hour_bucket,
+                             overall_score, sentiment)
+       values ($1, '2026-08-24', '19:30', 1, '18-21', 4.50, 'positive')
+       returning submission_id`,
+      [outlet],
+    )
+
+    await asAnon(db)
+
+    // Through the function, which is the ONLY privilege anon has here.
+    await db.query(`select aic_record_memory($1, true, null, null)`, [submission_id])
+    await db.query(`select aic_record_memory($1, null, true, 2::smallint)`, [submission_id])
+
+    await asServiceRole(db)
+    const row = await one<{ memory_offered: boolean; memory_retries: number }>(
+      db,
+      `select memory_offered, memory_retries from feedback where submission_id = $1`,
+      [submission_id],
+    )
+    expect(row.memory_offered).toBe(true)
+    expect(row.memory_retries).toBe(2)
+
+    await db.close()
+  })
+
+  it('refuses anon every other column on the same row', async () => {
+    // The whole point of the column-level GRANT. A bug in the photo layer must
+    // not be able to rewrite a guest's comment or forge a follow-up status, even
+    // though it holds a valid submission_id for that row.
+    const db = await freshDb()
+    const outlet = await outletId(db)
+    await asServiceRole(db)
+
+    const { submission_id } = await one<{ submission_id: string }>(
+      db,
+      `insert into feedback (outlet_id, local_date, local_time, day_of_week, hour_bucket,
+                             overall_score, sentiment, comment)
+       values ($1, '2026-08-24', '19:30', 1, '18-21', 1.00, 'negative', 'the food was cold')
+       returning submission_id`,
+      [outlet],
+    )
+
+    await asAnon(db)
+
+    for (const column of [
+      'comment',
+      'overall_score',
+      'sentiment',
+      'status',
+      'outlet_id',
+      // The memory columns too: even these are unreachable by direct UPDATE.
+      // The function is the only door, so "which columns" is code rather than a
+      // privilege that a later migration could widen by accident.
+      'memory_printed',
+    ]) {
+      const denied = await isDenied(
+        db.query(`update feedback set ${column} = null where submission_id = $1`, [submission_id]),
+      )
+      expect(denied, `anon must not be able to write feedback.${column}`).toBe(true)
+    }
+
+    await db.close()
+  })
+
+  it('does not blank an earlier report when a later one omits it', async () => {
+    // The kiosk reports `offered` when the screen appears and `printed` seconds
+    // later. Plain assignment would erase the first with the second, and uptake
+    // would read as though nobody was ever offered anything.
+    const db = await freshDb()
+    const outlet = await outletId(db)
+    await asServiceRole(db)
+
+    const { submission_id } = await one<{ submission_id: string }>(
+      db,
+      `insert into feedback (outlet_id, local_date, local_time, day_of_week, hour_bucket,
+                             overall_score, sentiment)
+       values ($1, '2026-08-24', '19:30', 1, '18-21', 5.00, 'positive')
+       returning submission_id`,
+      [outlet],
+    )
+
+    await asAnon(db)
+    await db.query(`select aic_record_memory($1, true, null, null)`, [submission_id])
+    await db.query(`select aic_record_memory($1, null, false, 3::smallint)`, [submission_id])
+
+    await asServiceRole(db)
+    const row = await one<{ memory_offered: boolean; memory_printed: boolean; memory_retries: number }>(
+      db,
+      `select memory_offered, memory_printed, memory_retries from feedback where submission_id = $1`,
+      [submission_id],
+    )
+    expect(row.memory_offered).toBe(true)
+    expect(row.memory_printed).toBe(false)
+    expect(row.memory_retries).toBe(3)
+
+    await db.close()
+  })
+
+  it('still refuses anon any read of feedback at all', async () => {
+    // What makes submission_id work as a capability: it cannot be enumerated,
+    // because anon cannot see the table.
+    const db = await freshDb()
+    await asAnon(db)
+    expect(await isDenied(db.query(`select submission_id from feedback`))).toBe(true)
+    await db.close()
+  })
+})

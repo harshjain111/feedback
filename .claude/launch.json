@@ -4,8 +4,26 @@
     {
       "name": "kiosk",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["exec", "next", "dev", "--port", "3111"],
+      "runtimeArgs": [
+        "exec",
+        "next",
+        "dev",
+        "--port",
+        "3111"
+      ],
       "port": 3111
+    },
+    {
+      "name": "kiosk-prod",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "exec",
+        "next",
+        "start",
+        "--port",
+        "3112"
+      ],
+      "port": 3112
     }
   ]
 }

@@ -304,29 +304,57 @@ describe('0002 — configuration', () => {
     await db.close()
   })
 
-  it('lets the kiosk write only the three photo booleans (CLAUDE.md §12)', async () => {
-    // The narrow write path. anon must be able to record uptake and nothing
-    // else — enforced by a column-level GRANT, so a bug in the photo layer
-    // cannot reach comment, overall_score or status even if the route asks it
-    // to. Reusing the submit endpoint's service-role client would have made the
-    // blast radius the whole table.
+  it('gives the kiosk no privilege on feedback except one function (CLAUDE.md §12)', async () => {
+    // 0014 tried this as a column-level UPDATE grant. Postgres refused the
+    // intended write, because an UPDATE needs SELECT on the columns its WHERE
+    // clause reads and anon has none on feedback by design (§7). The obvious
+    // patch — granting SELECT on submission_id — would have opened exactly the
+    // enumeration surface the capability model depends on being closed.
+    //
+    // 0015 replaced it with a SECURITY DEFINER function, which is strictly
+    // narrower: no column privilege at all, and the three columns named in code
+    // rather than held as a grant that a later migration could widen.
     const db = await seededDb()
 
     const granted = await rows<{ column_name: string; privilege_type: string }>(
       db,
       `select column_name, privilege_type
        from information_schema.column_privileges
-       where table_schema = 'public' and table_name = 'feedback' and grantee = 'anon'
-       order by column_name`,
+       where table_schema = 'public' and table_name = 'feedback' and grantee = 'anon'`,
     )
+    expect(granted, 'anon must hold no column privilege on feedback').toEqual([])
 
-    expect(granted.map((r) => r.column_name)).toEqual([
-      'memory_offered',
-      'memory_printed',
-      'memory_retries',
-    ])
-    expect([...new Set(granted.map((r) => r.privilege_type))]).toEqual(['UPDATE'])
+    const tableGrants = await rows<{ privilege_type: string }>(
+      db,
+      `select privilege_type from information_schema.table_privileges
+       where table_schema = 'public' and table_name = 'feedback' and grantee = 'anon'`,
+    )
+    expect(tableGrants, 'anon must hold no table privilege on feedback').toEqual([])
 
+    // Exactly one door, and it is EXECUTE on the function.
+    const functionGrants = await rows<{ routine_name: string; privilege_type: string }>(
+      db,
+      `select routine_name, privilege_type from information_schema.routine_privileges
+       where routine_schema = 'public' and grantee = 'anon'
+       order by routine_name`,
+    )
+    expect(functionGrants.map((r) => r.routine_name)).toEqual(['aic_record_memory'])
+    expect(functionGrants.map((r) => r.privilege_type)).toEqual(['EXECUTE'])
+
+    await db.close()
+  })
+
+  it('pins the search_path of the uptake function (§12)', async () => {
+    // A SECURITY DEFINER function that resolves table names through the
+    // caller's search_path is a privilege-escalation bug, not a convenience.
+    const db = await seededDb()
+    const fn = await one<{ prosecdef: boolean; proconfig: string | null }>(
+      db,
+      `select prosecdef, array_to_string(proconfig, ',') as proconfig
+       from pg_proc where proname = 'aic_record_memory'`,
+    )
+    expect(fn.prosecdef).toBe(true)
+    expect(fn.proconfig ?? '').toContain('search_path=public')
     await db.close()
   })
 

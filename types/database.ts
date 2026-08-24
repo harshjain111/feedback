@@ -1121,6 +1121,11 @@ export type Database = {
         Args: Record<string, unknown>
         Returns: unknown
       }
+      /** aic_record_memory(p_submission_id uuid, p_offered boolean DEFAULT NULL::boolean, p_printed boolean DEFAULT NULL::boolean, p_retries smallint DEFAULT NULL::smallint) -> boolean */
+      aic_record_memory: {
+        Args: Record<string, unknown>
+        Returns: unknown
+      }
       /** aic_reveal_phone(p_guest uuid, p_reason text DEFAULT NULL::text) -> text */
       aic_reveal_phone: {
         Args: Record<string, unknown>
