@@ -4,6 +4,7 @@ import {
   canKeepContact,
   combineComments,
   feedbackSubmissionSchema,
+  isUsableName,
   isValidPhone,
   normalisePhone,
 } from '@/lib/validation'
@@ -160,5 +161,36 @@ describe('what a compulsory contact screen may and may not do', () => {
     // screen and then accepting a name would be theatre.
     expect(canKeepContact('')).toBe(false)
     expect(canKeepContact('   ')).toBe(false)
+  })
+})
+
+describe('isUsableName — the loosest check that still catches a jab at the keyboard', () => {
+  it('accepts short real names', () => {
+    // "Om" and "Jia" are names. A three-character minimum would reject them.
+    for (const name of ['Om', 'Jia', 'Ravi', 'Priya Sharma', "D'Souza", 'Anne-Marie']) {
+      expect(isUsableName(name), name).toBe(true)
+    }
+  })
+
+  it('accepts names in Devanagari and Bengali', () => {
+    // A Latin-only rule would refuse a large share of this café's guests
+    // outright, at a screen they cannot get past.
+    for (const name of ['प्रिया', 'রাহুল', 'অমিত']) {
+      expect(isUsableName(name), name).toBe(true)
+    }
+  })
+
+  it('rejects a stray keystroke or a shrug', () => {
+    for (const name of ['', ' ', '  ', 'x', 'A', '1', '12', '...', '--', '  1234  ']) {
+      expect(isUsableName(name), JSON.stringify(name)).toBe(false)
+    }
+  })
+
+  it('does not try to adjudicate what a real name looks like', () => {
+    // Deliberately permissive. Anything tighter rejects somebody's actual name
+    // and gives them no way to argue with it.
+    for (const name of ['X Æ', 'Jo', 'de la Cruz', 'M. K. Nair']) {
+      expect(isUsableName(name), name).toBe(true)
+    }
   })
 })

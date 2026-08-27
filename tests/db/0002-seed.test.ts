@@ -60,6 +60,7 @@ const AUTHORED_KEYS = new Set([
   'contact.cta_hint',
   'contact.followup_sub',
   'contact.phone_hint',
+  'contact.name_hint',
   'grievance.name',
   'grievance.phone',
   'grievance.email',

@@ -7,7 +7,7 @@ import { BigButton } from './BigButton'
 import type { AppConfig } from '@/lib/config.types'
 // From lib/phone, not lib/validation: the latter imports zod, which has no
 // business in the kiosk bundle (§6).
-import { canKeepContact, isValidPhone } from '@/lib/phone'
+import { canKeepContact, isUsableName, isValidPhone } from '@/lib/phone'
 import { PrefetchNext } from './PrefetchNext'
 import { ratingValues, sentimentFor } from '@/lib/journey'
 import { getDraft, patchDraft } from '@/lib/session'
@@ -54,6 +54,7 @@ export function ContactForm({
   const [phone, setPhone] = useState('')
   const [wantsCallback, setWantsCallback] = useState(false)
   const [touchedPhone, setTouchedPhone] = useState(false)
+  const [touchedName, setTouchedName] = useState(false)
   // The submit is a network round trip now, so both buttons must lock while
   // it runs. A double-tap would otherwise start a second journey-ending
   // navigation on top of the first.
@@ -79,9 +80,23 @@ export function ContactForm({
   const phoneLooksWrong = touchedPhone && phone.trim() !== '' && !isValidPhone(phone)
   const phoneLooksRight = phone.trim() !== '' && isValidPhone(phone)
 
-  // A valid number is the whole condition — see canKeepContact for why a name
-  // on its own does not count.
-  const canKeep = canKeepContact(phone)
+  /*
+   * What it takes to leave.
+   *
+   * When the screen is optional, a valid number and nothing else — see
+   * canKeepContact for why a name on its own never counted. When it is
+   * required, both fields, because that is what the client asked for.
+   *
+   * The name check is deliberately loose (isUsableName): it catches a stray
+   * keystroke from somebody hunting for the shortest way past a required
+   * field, and nothing more. A stricter rule rejects somebody's real name, and
+   * on a kiosk they have no way to argue with it.
+   */
+  const nameOk = !required || isUsableName(name)
+  const canKeep = canKeepContact(phone) && nameOk
+
+  // Only ever complains about a field the guest has actually left.
+  const nameLooksWrong = required && touchedName && !isUsableName(name)
 
   /*
    * Explain the dimming.
@@ -168,11 +183,30 @@ export function ContactForm({
                 setName(event.target.value)
                 patchDraft({ name: event.target.value })
               }}
+              onBlur={() => setTouchedName(true)}
               autoComplete="name"
+              aria-invalid={nameLooksWrong}
+              aria-describedby={nameLooksWrong ? 'name-hint' : undefined}
               className={fieldClass}
-              style={{ paddingBlock: px(18), paddingLeft: px(58), paddingRight: px(20) }}
+              style={{
+                paddingBlock: px(18),
+                paddingLeft: px(58),
+                paddingRight: px(20),
+                borderColor: nameLooksWrong ? 'var(--color-rating-2)' : undefined,
+              }}
             />
           </span>
+          {nameLooksWrong ? (
+            /* On the field, not only in the summary line under the button —
+               with two required fields a guest needs to be told WHICH one. */
+            <span
+              id="name-hint"
+              className="text-k-micro block text-[color:var(--color-rating-2)]"
+              style={{ marginTop: px(8) }}
+            >
+              {copy.name_hint}
+            </span>
+          ) : null}
         </label>
 
         <label className="block">

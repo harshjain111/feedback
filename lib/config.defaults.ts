@@ -35,10 +35,11 @@ export const CONFIG_DEFAULTS: AppConfig = {
     },
     "contact": {
       "cta": "KEEP ME CONNECTED →",
-      "cta_hint": "Please add your mobile number so we can reach you.",
+      "cta_hint": "Please add your name and mobile number so we can reach you.",
       "followup_sub": "Leave your mobile number and a member of our team will personally reach out.",
       "h1": "WE'D LOVE TO STAY CONNECTED ❤️",
       "micro": "We'll use this only to reach you about your visit.",
+      "name_hint": "Please tell us your name.",
       "name_label": "Your Name",
       "phone_hint": "10 digits, starting 6-9",
       "phone_label": "Mobile Number",

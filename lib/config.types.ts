@@ -62,8 +62,10 @@ export type KioskCopy = {
     micro: string
     /** Shown instead of `support` when the guest asked to be followed up. */
     followup_sub: string
-    /** Inline hint under the phone field. A hint, never a gate. */
+    /** Inline hint under the phone field. */
     phone_hint: string
+    /** Inline hint under the name field. Rendered only while the screen is required. */
+    name_hint: string
     /**
      * Why the primary button is dimmed. Shown only while it is: guest
      * resolution keys on the phone number (§7), so KEEP ME CONNECTED with no

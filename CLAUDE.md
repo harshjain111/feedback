@@ -56,7 +56,7 @@ aic-cxis/
 │   │   ├── loved/page.tsx          # Positive pathway
 │   │   ├── comment/page.tsx        # General comments
 │   │   ├── followup/page.tsx       # Would you like us to follow up?
-│   │   ├── contact/page.tsx        # Name optional, phone required (§4)
+│   │   ├── contact/page.tsx        # Name and phone both required (§4)
 │   │   └── thanks/page.tsx         # Screen 05 — Final thank you + grievance
 │   ├── (admin)/admin/
 │   │   ├── layout.tsx              # auth guard + sidebar
@@ -124,7 +124,7 @@ Emotional arc: **Empowered → Safe → Heard → Acknowledged → Appreciated**
       ↓
 [GENERAL COMMENT]  optional — folded into the branch screen above, not its own step
       ↓
-[CONTACT]  name optional, phone REQUIRED (client decision — see below)
+[CONTACT]  name AND phone both REQUIRED (client decision — see below)
       ↓
   ✅ COMMIT to Postgres  ← feedback is saved HERE, before the photo module
       ↓
@@ -151,8 +151,14 @@ to the follow-up metrics — it changes their meaning, not just their plumbing.
 - **`follow_up_requested` is derived, never asked:** `sentiment === 'negative' && phone !== ''`.
   On the negative branch the contact screen shows a variant subheading explaining why a number
   helps, but the field stays optional and SKIP stays exactly as reachable. Never `required`.
-- **Contact details are compulsory.** `contact.required` (default true) requires a valid mobile
-  number to leave the contact screen, and SKIP is not shown. This is a client decision taken on
+- **Contact details are compulsory.** `contact.required` (default true) requires BOTH a name and
+  a valid mobile number to leave the contact screen, and SKIP is not shown.
+
+  The name check is deliberately loose — two characters containing at least one letter, matched
+  Unicode-aware so Devanagari and Bengali names pass. It exists to catch a stray keystroke from
+  somebody hunting for the shortest way past a required field, not to adjudicate what a real name
+  looks like. Any rule tighter than that rejects somebody's actual name, and on a kiosk they have
+  no way to argue with it. This is a client decision taken on
   27 Aug 2026 and it REVERSES the brief, which said the phone was optional always and SKIP was
   permanently visible. It is a config key rather than deleted code, so it can be turned back off
   from Settings without a deploy.
@@ -250,7 +256,9 @@ resolution, not escalation — ✗ never "lodge a complaint", ✗ never "speak t
 **Contact**
 - H1: `WE'D LOVE TO STAY CONNECTED ❤️`
 - Support: `As a valued customer, we'd love to keep you updated with special offers, new experiences and what's happening at All India Café.`
-- Fields: `Your Name`, `Mobile Number`
+- Fields: `Your Name`, `Mobile Number` — both required while `contact.required` is true (§4),
+  each with its own inline hint, because with two required fields a guest needs to be told which
+  one is the problem.
 - CTA: `KEEP ME CONNECTED →` / Secondary: `SKIP` — **SKIP is no longer rendered** while
   `contact.required` is true (§4). The copy stays seeded so turning the setting back off restores
   the button without a migration.

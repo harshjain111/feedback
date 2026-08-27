@@ -44,3 +44,22 @@ export function maskPhone(phone: string | null, visibleDigits = 4): string | nul
 export function canKeepContact(phone: string): boolean {
   return phone.trim() !== '' && isValidPhone(phone)
 }
+
+/**
+ * Is this a name we can actually use?
+ *
+ * Deliberately permissive. It exists to catch a stray keystroke or a jab at the
+ * keyboard from someone who does not want to give a name and is looking for the
+ * shortest way past a required field — not to adjudicate what a real name looks
+ * like. Any rule tighter than this rejects somebody's actual name, and on a
+ * kiosk they have no way to argue with it.
+ *
+ * `\p{L}` rather than A-Z: guests write their names in Devanagari and Bengali,
+ * and a Latin-only check would refuse them outright.
+ */
+export function isUsableName(input: string): boolean {
+  const trimmed = input.trim()
+  // Two characters, because "Om" and "Jia" are names and "x" is a keystroke.
+  if (trimmed.length < 2) return false
+  return /\p{L}/u.test(trimmed)
+}
