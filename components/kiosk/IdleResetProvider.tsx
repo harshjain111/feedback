@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef } from 'react'
-import { clearDraft } from '@/lib/session'
+import { getDraft, clearDraft, hasAnyRating } from '@/lib/session'
+import { submitDraft } from '@/lib/kiosk/submit'
 
 /**
  * Returns the kiosk to Welcome and wipes the draft after a period of inactivity
@@ -11,6 +12,19 @@ import { clearDraft } from '@/lib/session'
  * This is a privacy control as much as a UX one: a guest who walks off
  * mid-journey must not leave their half-finished answers on screen for the next
  * person, and the next person must not accidentally submit them.
+ *
+ * IT ALSO RESCUES THE FEEDBACK, and that is load-bearing rather than tidy.
+ *
+ * Contact details are compulsory (`contact.required`), so a guest who will not
+ * give a number has no way forward and simply leaves. The submit fires on
+ * LEAVING the contact screen, so without this their ratings would walk out with
+ * them — and the guests least willing to be identified are exactly the ones
+ * whose feedback the café most needs. Anything already rated is committed here
+ * before the draft is wiped.
+ *
+ * What gets committed is only what the guest freely gave. The contact details
+ * they declined are simply absent; nothing is inferred and nothing is kept that
+ * they did not type.
  */
 export function IdleResetProvider({
   idleSeconds,
@@ -24,7 +38,19 @@ export function IdleResetProvider({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const reset = useCallback(() => {
-    clearDraft()
+    const draft = getDraft()
+
+    // Fire and forget, then wipe regardless. The next guest must not wait on a
+    // network call, and submitDraft queues to IndexedDB if it cannot reach the
+    // server (§43) — so an outage delays the write, it does not lose it.
+    // Idempotent on submission_id, so a journey that already submitted at the
+    // contact screen does not write a second row.
+    if (hasAnyRating(draft) && draft.feedbackCode === null) {
+      void submitDraft().finally(clearDraft)
+    } else {
+      clearDraft()
+    }
+
     router.replace('/')
     router.refresh()
   }, [router])

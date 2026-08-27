@@ -21,16 +21,21 @@ import { submitDraft } from '@/lib/kiosk/submit'
  * explain why a number helps, but the field stays optional and SKIP stays
  * exactly as reachable. Nothing here ever blocks.
  *
- * KEEP ME CONNECTED, however, is live only once there is something to keep.
- * It used to work on an empty form, and that was a promise the system could not
- * honour: guest resolution keys on the phone number (§7), so a submission with
- * no number — or with a name and no number — stores no guest at all. The guest
- * tapped a button that said they were connected and walked away not connected.
+ * KEEP ME CONNECTED is live only once there is something to keep. Guest
+ * resolution keys on the phone number (§7), so a submission with no number — or
+ * with a name and no number — stores no guest at all; a button that said
+ * "connected" over an empty form was a promise the system could not honour.
  *
- * Gating the button is not the same as requiring the field. §4's rule is that
- * nothing may block the journey, and nothing does: SKIP sits directly beneath,
- * full size, always live, and it is the correct button for a guest who does not
- * want to share anything.
+ * WHEN `contact.required` IS SET, this screen blocks. That is a client decision
+ * and a departure from the brief, which said the phone was optional always and
+ * SKIP was permanently visible. CLAUDE.md §4, §5 and §11 record the change.
+ *
+ * What it costs is worth stating where somebody will read it: a guest who will
+ * not give a number now has no way forward, so they walk away — and the submit
+ * fires on LEAVING this screen, so their ratings would go with them. The idle
+ * reset commits the draft before wiping it (IdleResetProvider), which is the
+ * only reason this change does not quietly cost the café its most candid
+ * feedback. Do not remove that rescue without putting SKIP back.
  */
 export function ContactForm({
   copy,
@@ -42,6 +47,8 @@ export function ContactForm({
   /** §8b layer 1. False means the journey must not route through /memory at all. */
   memoryEnabled: boolean
 }) {
+  // Read once, here, so every branch below reads the same value.
+  const required = copy.required
   const router = useRouter()
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -76,9 +83,15 @@ export function ContactForm({
   // on its own does not count.
   const canKeep = canKeepContact(phone)
 
-  // Explain the dimming only once the guest has started — a hint under an
-  // untouched form is noise, and the micro line already says SKIP is fine.
-  const showCtaHint = !canKeep && (name.trim() !== '' || phone.trim() !== '')
+  /*
+   * Explain the dimming.
+   *
+   * When the screen is optional, only once the guest has started — a hint under
+   * an untouched form is noise, and the micro line already says SKIP is fine.
+   * When it is required there IS no skip, so an untouched form with a dead
+   * button and no explanation is a dead end; say it immediately.
+   */
+  const showCtaHint = !canKeep && (required || name.trim() !== '' || phone.trim() !== '')
 
   /**
    * The end of the questions, and now also the COMMIT POINT (§4).
@@ -237,15 +250,22 @@ export function ContactForm({
           <BigButton fullWidth className="k-cta" disabled={!canKeep} onClick={() => finish(true)}>
             {copy.cta}
           </BigButton>
-          <BigButton
-            fullWidth
-            variant="secondary"
-            className="k-cta"
-            disabled={busy}
-            onClick={() => void finish(false)}
-          >
-            {copy.skip}
-          </BigButton>
+          {/*
+            No SKIP when the screen is required. Hidden rather than disabled: a
+            greyed-out way out is crueller than none, because it tells a guest
+            there was an exit and they may not use it.
+          */}
+          {required ? null : (
+            <BigButton
+              fullWidth
+              variant="secondary"
+              className="k-cta"
+              disabled={busy}
+              onClick={() => void finish(false)}
+            >
+              {copy.skip}
+            </BigButton>
+          )}
         </div>
         <p
           className="text-k-micro text-ink-muted text-center"

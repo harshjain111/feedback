@@ -199,3 +199,13 @@ describe('the Memory Print Module in the journey (§4, PHOTO_MODULE.md §7)', ()
     }
   })
 })
+
+describe('compulsory contact details (§4, client decision 27 Aug 2026)', () => {
+  it('still routes onward from contact — the block is on the screen, not the journey', () => {
+    // Requiring a number changes what a guest must do to leave the screen. It
+    // does not add a state the journey can get stuck in: whichever way they
+    // leave, the next step is the same.
+    expect(routeAfter('/contact', [5, 5, 5, 5], false)).toBe('/thanks')
+    expect(routeAfter('/contact', [5, 5, 5, 5], true)).toBe('/memory')
+  })
+})

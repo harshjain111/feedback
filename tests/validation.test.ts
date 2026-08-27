@@ -142,3 +142,23 @@ describe('the draft never carries a photograph', () => {
     expect(emptyDraft().feedbackCode).toBeNull()
   })
 })
+
+describe('what a compulsory contact screen may and may not do', () => {
+  it('accepts exactly the numbers the submit can store', () => {
+    // The gate and the guest key have to agree. If the button accepted
+    // something POST /api/feedback would not attach a guest to, a guest would
+    // be forced to hand over a number that then went nowhere.
+    for (const value of ['9876543210', '+91 98765 43210', '098765-43210']) {
+      expect(canKeepContact(value), value).toBe(true)
+      expect(isValidPhone(value), value).toBe(true)
+    }
+  })
+
+  it('never lets a name alone satisfy it', () => {
+    // A name is not a contact detail: guest resolution keys on the phone (§7),
+    // so a name with no number stores nothing and reaches nobody. Requiring the
+    // screen and then accepting a name would be theatre.
+    expect(canKeepContact('')).toBe(false)
+    expect(canKeepContact('   ')).toBe(false)
+  })
+})

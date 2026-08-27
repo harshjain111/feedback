@@ -56,7 +56,7 @@ aic-cxis/
 │   │   ├── loved/page.tsx          # Positive pathway
 │   │   ├── comment/page.tsx        # General comments
 │   │   ├── followup/page.tsx       # Would you like us to follow up?
-│   │   ├── contact/page.tsx        # Name + phone (both optional)
+│   │   ├── contact/page.tsx        # Name optional, phone required (§4)
 │   │   └── thanks/page.tsx         # Screen 05 — Final thank you + grievance
 │   ├── (admin)/admin/
 │   │   ├── layout.tsx              # auth guard + sidebar
@@ -124,7 +124,7 @@ Emotional arc: **Empowered → Safe → Heard → Acknowledged → Appreciated**
       ↓
 [GENERAL COMMENT]  optional — folded into the branch screen above, not its own step
       ↓
-[CONTACT]  name + phone, both optional, SKIP always visible
+[CONTACT]  name optional, phone REQUIRED (client decision — see below)
       ↓
   ✅ COMMIT to Postgres  ← feedback is saved HERE, before the photo module
       ↓
@@ -151,9 +151,21 @@ to the follow-up metrics — it changes their meaning, not just their plumbing.
 - **`follow_up_requested` is derived, never asked:** `sentiment === 'negative' && phone !== ''`.
   On the negative branch the contact screen shows a variant subheading explaining why a number
   helps, but the field stays optional and SKIP stays exactly as reachable. Never `required`.
-- `KEEP ME CONNECTED` is enabled only once a valid mobile number is present — guest resolution
-  keys on the phone (§7), so the button would otherwise promise a connection the submit cannot
-  store. This gates one button, not the journey: SKIP sits beneath it, full size, always live.
+- **Contact details are compulsory.** `contact.required` (default true) requires a valid mobile
+  number to leave the contact screen, and SKIP is not shown. This is a client decision taken on
+  27 Aug 2026 and it REVERSES the brief, which said the phone was optional always and SKIP was
+  permanently visible. It is a config key rather than deleted code, so it can be turned back off
+  from Settings without a deploy.
+
+  Two consequences, both handled and neither to be undone casually:
+
+  - A guest who will not give a number has no way forward, so they leave. The submit fires on
+    leaving the contact screen, so their ratings would go with them — the idle reset therefore
+    commits the draft before wiping it. **Do not remove that rescue without restoring SKIP.**
+  - The guests least willing to be identified are the ones whose feedback is most candid. Expect
+    the response rate to fall and the remaining sample to skew positive; §14.2 and §14.3 are
+    about not distorting what guests tell you, and this pulls against them. Worth watching in the
+    first fortnight against the uptake numbers on the dashboard.
 
 **Session handling:** the whole journey is one draft object in `sessionStorage`. Nothing is written to Postgres until the final submit on the thank-you transition — one atomic `POST /api/feedback`. Idle timer (90s, configurable) resets to Welcome and clears the draft, so the next guest never sees the previous guest's answers.
 
@@ -239,8 +251,13 @@ resolution, not escalation — ✗ never "lodge a complaint", ✗ never "speak t
 - H1: `WE'D LOVE TO STAY CONNECTED ❤️`
 - Support: `As a valued customer, we'd love to keep you updated with special offers, new experiences and what's happening at All India Café.`
 - Fields: `Your Name`, `Mobile Number`
-- CTA: `KEEP ME CONNECTED →` / Secondary: `SKIP`
-- Micro: `Optional — you can skip this step.`
+- CTA: `KEEP ME CONNECTED →` / Secondary: `SKIP` — **SKIP is no longer rendered** while
+  `contact.required` is true (§4). The copy stays seeded so turning the setting back off restores
+  the button without a migration.
+- Micro: `We'll use this only to reach you about your visit.`
+  *(Was `Optional — you can skip this step.` — reseeded in 0018. The screen is no longer optional
+  and the line could not go on saying that it was. The old string stays recorded here so reverting
+  `contact.required` has a copy to revert to.)*
 
 **Screen 05 — Thank you**
 - H1: `THANK YOU FOR BEING HEARD. ❤️`
@@ -453,7 +470,11 @@ Frozen header row, bold headers, auto-width, date formatting `dd-MMM-yyyy`. File
 
 ## 11. PRIVACY (§45)
 
-- Phone collection is optional. Always.
+- Phone collection was optional always. As of 0018 it is **required to complete the journey**
+  (§4). The consent line must therefore not describe it as optional, and anyone reviewing this
+  against India's DPDP Act should note that consent for data which is not necessary to deliver
+  the service is a different question when the service is withheld without it. Flagged, not
+  resolved — that is a decision for the client and their counsel.
 - Consent language visible on the contact screen — not buried.
 - Phone masked as `XXXXXX3210` everywhere except: guest profile (MANAGER+), follow-up detail (assigned staff), OWNER/ADMIN exports.
 - Configurable retention policy in settings (default: retain indefinitely, but the setting and the purge job must exist).

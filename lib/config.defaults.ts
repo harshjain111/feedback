@@ -35,13 +35,14 @@ export const CONFIG_DEFAULTS: AppConfig = {
     },
     "contact": {
       "cta": "KEEP ME CONNECTED →",
-      "cta_hint": "Add your mobile number to stay connected — or skip.",
+      "cta_hint": "Please add your mobile number so we can reach you.",
       "followup_sub": "Leave your mobile number and a member of our team will personally reach out.",
       "h1": "WE'D LOVE TO STAY CONNECTED ❤️",
-      "micro": "Optional — you can skip this step.",
+      "micro": "We'll use this only to reach you about your visit.",
       "name_label": "Your Name",
       "phone_hint": "10 digits, starting 6-9",
       "phone_label": "Mobile Number",
+      "required": true,
       "skip": "SKIP",
       "support": "As a valued customer, we'd love to keep you updated with special offers, new experiences and what's happening at All India Café."
     },

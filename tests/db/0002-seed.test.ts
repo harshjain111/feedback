@@ -53,6 +53,10 @@ const LOCKED_SECTIONS = [
  * adding one should feel like a cost.
  */
 const AUTHORED_KEYS = new Set([
+  // Not copy at all: a boolean setting that happens to live in a locked
+  // section. The drift check compares values against §5's backticked strings,
+  // so anything in these sections that is not a sentence has to say so.
+  'contact.required',
   'contact.cta_hint',
   'contact.followup_sub',
   'contact.phone_hint',

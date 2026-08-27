@@ -67,9 +67,18 @@ export type KioskCopy = {
     /**
      * Why the primary button is dimmed. Shown only while it is: guest
      * resolution keys on the phone number (§7), so KEEP ME CONNECTED with no
-     * number would store nothing. SKIP is always live either way.
+     * number would store nothing.
      */
     cta_hint: string
+    /**
+     * Client decision, departing from §4/§11: when true a valid mobile number
+     * is required to leave this screen and SKIP is not offered.
+     *
+     * A config key rather than deleted code, because this is the kind of
+     * decision that gets reversed after a fortnight of watching the response
+     * rate, and reversing it should be a toggle rather than a deploy.
+     */
+    required: boolean
   }
   thanks: {
     h1: string
