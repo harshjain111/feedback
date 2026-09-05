@@ -88,7 +88,15 @@ export type FeedbackListItem = {
   sentiment: 'positive' | 'neutral' | 'negative' | null
   ratings: { categoryId: string; name: string; rating: number }[]
   issues: string[]
-  commentExcerpt: string | null
+  /**
+   * The guest's words IN FULL, never truncated (§14.10).
+   *
+   * The list used to carry a server-side excerpt, which meant the only way to
+   * read a long comment was a page load — and the comment is the reason anyone
+   * opens this screen. Clipping is now a CSS concern on the collapsed row, so
+   * expanding shows everything without another request.
+   */
+  comment: string | null
   followUpRequested: boolean
   status: string
 }

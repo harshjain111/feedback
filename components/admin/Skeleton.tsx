@@ -89,3 +89,32 @@ export function TableSkeleton({ rows = 8 }: { rows?: number }) {
     </div>
   )
 }
+
+/**
+ * The feedback list while its rows are being fetched.
+ *
+ * Shaped like the real thing — score disc, two lines of text, a status pill —
+ * so the page does not jump when the data lands. A spinner would say "something
+ * is happening"; this says what is coming.
+ */
+export function FeedbackListSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <div
+      className="border-line bg-surface divide-line divide-y rounded-2xl border"
+      aria-busy="true"
+      aria-label="Loading feedback"
+    >
+      {Array.from({ length: rows }, (_, index) => (
+        <div key={index} className="flex items-center gap-4 px-4 py-3">
+          <Skeleton className="h-11 w-11 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-3.5 w-44" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+          <Skeleton className="hidden h-6 w-64 rounded-full lg:block" />
+          <Skeleton className="h-6 w-16 shrink-0 rounded-full" />
+        </div>
+      ))}
+    </div>
+  )
+}

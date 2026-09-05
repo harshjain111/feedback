@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { FeedbackFilters } from '@/components/admin/FeedbackFilters'
 import { FeedbackTable } from '@/components/admin/FeedbackTable'
+import { FeedbackListSkeleton } from '@/components/admin/Skeleton'
 import { SectionHeading } from '@/components/admin/SectionHeading'
 import { requireUser } from '@/lib/auth'
 import { getCategories, getIssues, getRatingScale } from '@/lib/config'
@@ -57,12 +58,10 @@ export default async function AdminFeedbackPage({
 
   const page = Number(single('page') ?? '1')
 
-  const [result, categories, issues, scale] = await Promise.all([
-    getFeedbackList(filters, { page: Number.isFinite(page) ? page : 1, pageSize: PAGE_SIZE }),
-    getCategories(),
-    getIssues('negative'),
-    getRatingScale(),
-  ])
+  // Only what the FILTER BAR needs is awaited here. The list itself is streamed
+  // inside a Suspense boundary below, so the controls stay interactive and
+  // painted while the rows are being fetched.
+  const [categories, issues] = await Promise.all([getCategories(), getIssues('negative')])
 
   const query = new URLSearchParams(
     Object.entries(params).flatMap(([key, value]) =>
@@ -82,7 +81,36 @@ export default async function AdminFeedbackPage({
         <FeedbackFilters categories={categories} issues={issues} />
       </Suspense>
 
-      <FeedbackTable page={result} scale={scale} searchParams={query} />
+      {/*
+        KEYED on the query string, and that key is the whole point.
+
+        loading.tsx fires once, when the segment first mounts. Changing a filter
+        is a client-side navigation within the same segment, so it never fires
+        again — which is why the page appeared to hang on every filter change
+        with no sign it was doing anything. A Suspense boundary whose key
+        changes with the params remounts, so the skeleton returns each time.
+      */}
+      <Suspense key={query} fallback={<FeedbackListSkeleton />}>
+        <FeedbackList filters={filters} page={page} query={query} />
+      </Suspense>
     </div>
   )
+}
+
+/** The rows. Split out so the Suspense boundary above has something to await. */
+async function FeedbackList({
+  filters,
+  page,
+  query,
+}: {
+  filters: Filters
+  page: number
+  query: string
+}) {
+  const [result, scale] = await Promise.all([
+    getFeedbackList(filters, { page: Number.isFinite(page) ? page : 1, pageSize: PAGE_SIZE }),
+    getRatingScale(),
+  ])
+
+  return <FeedbackTable page={result} scale={scale} searchParams={query} />
 }

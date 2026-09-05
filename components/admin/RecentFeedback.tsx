@@ -56,7 +56,7 @@ export function RecentFeedback({
               </span>
 
               {/* The verbatim comment, never a summary of it (§14.10). */}
-              {item.commentExcerpt ? (
+              {item.comment ? (
                 <span className="text-ink-soft mt-0.5 flex items-start gap-1.5 text-sm">
                   <MessageSquare
                     size={13}
@@ -64,7 +64,7 @@ export function RecentFeedback({
                     aria-hidden="true"
                     className="text-ink-muted mt-1 shrink-0"
                   />
-                  <span className="line-clamp-1">{item.commentExcerpt}</span>
+                  <span className="line-clamp-1">{item.comment}</span>
                 </span>
               ) : item.issues.length > 0 ? (
                 <span className="text-ink-muted mt-0.5 block truncate text-sm">

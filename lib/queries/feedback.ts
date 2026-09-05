@@ -4,22 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import type { FeedbackDetail, FeedbackFilters, FeedbackListItem, Paged, Pagination } from './types'
 
-/**
- * The feedback list and detail (§28, §29).
- *
- * Phone numbers are masked at the QUERY layer, not in the component: the list
- * reads guests through `guests_visible`, so a masked value is the only thing
- * that ever reaches the server component. §11 and Prompt 42 both require this —
- * masking in JSX would still put the real number in the RSC payload.
- */
 
-const EXCERPT_LENGTH = 140
-
-function excerpt(comment: string | null): string | null {
-  if (!comment) return null
-  const flat = comment.replace(/\s+/g, ' ').trim()
-  return flat.length <= EXCERPT_LENGTH ? flat : `${flat.slice(0, EXCERPT_LENGTH - 1)}…`
-}
 
 type RawFeedback = {
   feedback_id: string
@@ -41,7 +26,7 @@ function toSentiment(value: string | null): FeedbackListItem['sentiment'] {
 
 async function decorate(
   rawRows: RawFeedback[],
-): Promise<Omit<FeedbackListItem, 'commentExcerpt'>[] & { comment?: never }> {
+): Promise<Omit<FeedbackListItem, 'comment'>[]> {
   const client = await createClient()
   const ids = rawRows.map((row) => row.feedback_id)
   if (ids.length === 0) return []
@@ -157,46 +142,76 @@ export async function getFeedbackList(
   const decorated = await decorate((data ?? []) as RawFeedback[])
   const items: FeedbackListItem[] = decorated.map((item, index) => ({
     ...item,
-    commentExcerpt: excerpt((data ?? [])[index]?.comment ?? null),
+    // In full. The row clips it with CSS; expanding needs no second request.
+    comment: (data ?? [])[index]?.comment ?? null,
   }))
 
   const total = count ?? items.length
   return { items, total, page, pageSize, pageCount: Math.ceil(total / pageSize) }
 }
 
-/** Resolve category/issue/theme filters to a feedback_id set, or null if unused. */
+/**
+ * Resolve category/issue/theme filters to a feedback_id set, or null if unused.
+ *
+ * Scoped to the date window, which it was not before. Selecting a category used
+ * to fetch EVERY feedback_id that ever carried it — the whole table's history,
+ * to filter one day of it — and then intersect with Array.includes inside a
+ * filter, which is quadratic. On a café's first month that is invisible and by
+ * next year it is the reason this page times out.
+ *
+ * The window comes from an inner select on feedback rather than a second round
+ * trip, so this is still one query per active filter.
+ */
 async function restrictingIds(filters: FeedbackFilters): Promise<string[] | null> {
   const client = await createClient()
   const sets: string[][] = []
 
+  /*
+   * `feedback!inner(local_date)` is what applies the date bound IN POSTGRES.
+   * Written out per relation rather than through a shared helper: a union of
+   * the three tables narrows the column type to their intersection, so
+   * `category_id` stops being assignable and the compiler is right to say so.
+   */
+  const window_ = <T>(rows: { feedback_id: T }[] | null) => (rows ?? []).map((row) => row.feedback_id)
+
   if (filters.categoryId) {
     const { data } = await client
       .from('feedback_ratings')
-      .select('feedback_id')
+      .select('feedback_id, feedback!inner(local_date)')
       .eq('category_id', filters.categoryId)
-    sets.push((data ?? []).map((row) => row.feedback_id))
+      .gte('feedback.local_date', filters.from)
+      .lte('feedback.local_date', filters.to)
+    sets.push(window_(data))
   }
 
   if (filters.issueId) {
     const { data } = await client
       .from('feedback_issues')
-      .select('feedback_id')
+      .select('feedback_id, feedback!inner(local_date)')
       .eq('issue_id', filters.issueId)
-    sets.push((data ?? []).map((row) => row.feedback_id))
+      .gte('feedback.local_date', filters.from)
+      .lte('feedback.local_date', filters.to)
+    sets.push(window_(data))
   }
 
   if (filters.themeId) {
     const { data } = await client
       .from('feedback_themes')
-      .select('feedback_id')
+      .select('feedback_id, feedback!inner(local_date)')
       .eq('theme_id', filters.themeId)
-    sets.push((data ?? []).map((row) => row.feedback_id))
+      .gte('feedback.local_date', filters.from)
+      .lte('feedback.local_date', filters.to)
+    sets.push(window_(data))
   }
 
   if (sets.length === 0) return null
 
-  // Intersection: filters combine with AND, as the UI implies.
-  return sets.reduce((accumulator, set) => accumulator.filter((id) => set.includes(id)))
+  // Intersection through a Set rather than Array.includes: filters combine with
+  // AND, and the nested-loop version was quadratic in the number of matches.
+  return sets.reduce((accumulator, set) => {
+    const lookup = new Set(set)
+    return accumulator.filter((id) => lookup.has(id))
+  })
 }
 
 /** One feedback with its full comment and follow-up thread (§28, §30). */
@@ -275,8 +290,7 @@ export async function getFeedbackDetail(feedbackId: string): Promise<FeedbackDet
 
   return {
     ...base,
-    commentExcerpt: excerpt(raw.comment),
-    // The detail view shows the guest's own words in full, never the excerpt.
+    // The guest's own words, in full and unaltered (§14.10).
     comment: raw.comment,
     guestId: raw.guest_id,
     guestCode: guestResult.data?.guest_code ?? null,
