@@ -474,6 +474,12 @@ Every insight card answers: *What happened? How significant? Improving or worsen
 Frozen header row, bold headers, auto-width, date formatting `dd-MMM-yyyy`. Filename `AIC-Feedback-{from}-to-{to}.xlsx`.
 **Export is role-restricted** (OWNER/ADMIN/MANAGER only) and every export writes an `audit_log` row. Phone numbers appear in full **only** in exports by OWNER/ADMIN.
 
+**Where the export button appears.** Dashboard, Reports, Feedback, Guests and Analytics — every
+page whose data the workbook actually contains, gated on `export:data` so STAFF never see it.
+Deliberately NOT on Users or Settings: the workbook is the six sheets above and contains neither,
+so a button there would hand somebody a feedback workbook while they were looking at accounts. If
+a user roster is wanted in the export, that is a seventh sheet and a change to this section.
+
 ---
 
 ## 11. PRIVACY (§45)
@@ -484,7 +490,19 @@ Frozen header row, bold headers, auto-width, date formatting `dd-MMM-yyyy`. File
   the service is a different question when the service is withheld without it. Flagged, not
   resolved — that is a decision for the client and their counsel.
 - Consent language visible on the contact screen — not buried.
-- Phone masked as `XXXXXX3210` everywhere except: guest profile (MANAGER+), follow-up detail (assigned staff), OWNER/ADMIN exports.
+- Phone masked as `XXXXXX3210` everywhere except: the **feedback list and feedback detail**
+  (MANAGER+ — see below), guest profile (MANAGER+), follow-up detail (assigned staff),
+  OWNER/ADMIN exports.
+- **Unmasked on the feedback surfaces as of 0021.** Client decision, 13 Sep 2026. The masking made
+  the list unusable for the one thing it is for — ringing back the guest whose visit went wrong —
+  because every number had to be revealed one at a time. `guests_visible` now carries a `phone`
+  column that is the real number for OWNER/ADMIN/MANAGER and **NULL for STAFF**, who still see only
+  `phone_masked`. §8's "STAFF: no guest phone numbers" is a security boundary and is unchanged.
+  Consequence: list reads are no longer audited per number, because a list read is not a per-number
+  action. `aic_reveal_phone()` is untouched and remains the audited path for an individual,
+  deliberate unmask and the only route STAFF have. The MANAGER+ audit trail is therefore coarser
+  than it was — that is the trade the client asked for, recorded here rather than discovered later.
+- The **guests list stays masked** for every role. Only the feedback surfaces changed.
 - Configurable retention policy in settings (default: retain indefinitely, but the setting and the purge job must exist).
 - Every unmask/export action is audit-logged.
 

@@ -1,9 +1,11 @@
 import { Suspense } from 'react'
 import { FeedbackFilters } from '@/components/admin/FeedbackFilters'
 import { FeedbackTable } from '@/components/admin/FeedbackTable'
+import { ExportButton } from '@/components/admin/ExportButton'
 import { FeedbackListSkeleton } from '@/components/admin/Skeleton'
 import { SectionHeading } from '@/components/admin/SectionHeading'
 import { requireUser } from '@/lib/auth'
+import { can } from '@/lib/permissions'
 import { getCategories, getIssues, getRatingScale } from '@/lib/config'
 import { getFeedbackList } from '@/lib/queries'
 import type { FeedbackFilters as Filters } from '@/lib/queries/types'
@@ -25,7 +27,7 @@ export default async function AdminFeedbackPage({
 }) {
   // No permission check beyond being signed in: §8 gives every role, STAFF
   // included, a read-only feedback list. RLS scopes the rows.
-  await requireUser('/admin/feedback')
+  const user = await requireUser('/admin/feedback')
 
   const params = await searchParams
   const range = parseRange(params)
@@ -75,6 +77,7 @@ export default async function AdminFeedbackPage({
         title="Feedback"
         note={`${range.from} to ${range.to} · every filter is in the URL, so this view is shareable.`}
         level="page"
+        action={can(user, 'export:data') ? <ExportButton range={range} /> : null}
       />
 
       <Suspense fallback={null}>

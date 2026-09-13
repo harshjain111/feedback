@@ -29,8 +29,8 @@ import {
   getTopIssues,
   getTrend,
 } from '@/lib/queries'
-import { createClient } from '@/lib/supabase/server'
 import { getInsights } from '@/lib/queries/insights'
+import { getKiosks } from '@/lib/queries/kiosks'
 import { parseRange, rangeToParams } from '@/lib/range'
 
 /**
@@ -82,12 +82,9 @@ export default async function AdminTodayPage({
       getMemoryUptake(range),
     ])
 
-  const supabase = await createClient()
-  const { data: kioskRows } = await supabase
-    .from('kiosks')
-    .select('label, last_seen_at')
-    .eq('outlet_id', user.outletId)
-    .eq('active', true)
+  // Shared with the shell header via cache(): both need the same row, and this
+  // page used to issue its own query for it on every render.
+  const kioskRows = await getKiosks()
 
   const biggestIssue = topIssues.find((issue) => (issue.mentions.value ?? 0) > 0) ?? null
   const biggestWin = topWins.find((issue) => (issue.mentions.value ?? 0) > 0) ?? null
@@ -105,9 +102,9 @@ export default async function AdminTodayPage({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <KioskStatus
-            kiosks={(kioskRows ?? []).map((kiosk) => ({
+            kiosks={kioskRows.map((kiosk) => ({
               label: kiosk.label,
-              lastSeenAt: kiosk.last_seen_at,
+              lastSeenAt: kiosk.lastSeenAt,
             }))}
           />
           {can(user, 'export:data') ? <ExportButton range={range} /> : null}

@@ -88,7 +88,10 @@ export default async function AdminFeedbackDetailPage({
           <div>
             <dt className="text-ink-muted text-[11px] uppercase">Phone</dt>
             <dd className="text-ink mt-0.5 text-sm">
-              {detail.guestPhoneMasked ?? <span className="text-ink-muted">Not given</span>}
+              {/* Real number for MANAGER+, masked for STAFF (0021). */}
+              {(detail.guestPhone ?? detail.guestPhoneMasked) ?? (
+                <span className="text-ink-muted">Not given</span>
+              )}
             </dd>
           </div>
           <div>

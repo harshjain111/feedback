@@ -33,22 +33,47 @@ import {
 
 const REVALIDATE_SECONDS = 60
 
-/** Resolves the outlet this deployment serves. Cached for the request. */
+/**
+ * Process-wide memo for the outlet id.
+ *
+ * `cache()` alone is not enough and the measurement showed why: it dedupes
+ * within ONE React render pass, but `getOutletId` is also called from inside
+ * `unstable_cache` callbacks and from route handlers, which run outside that
+ * pass. A single dashboard render was firing this same query more than thirty
+ * times, and because they all went out at once they queued against each other
+ * — each one measured 3.5-4s instead of the ~340ms a lone query costs.
+ *
+ * A code -> id mapping is immutable for the life of a deployment, so it is
+ * memoised as a PROMISE at module scope: concurrent callers share the one
+ * in-flight request instead of starting their own.
+ */
+const outletIdByCode = new Map<string, Promise<string>>()
+
+/** Resolves the outlet this deployment serves. One query per server instance. */
 export const getOutletId = cache(async (): Promise<string> => {
   if (allowOfflineSeedFallback()) return 'offline-outlet'
-  const db = createAdminClient()
-  const { data, error } = await db
-    .from('outlets')
-    .select('outlet_id')
-    .eq('code', outletCode())
-    .single()
 
-  if (error || !data) {
-    throw new Error(
-      `No outlet with code "${outletCode()}". Has 0002_seed.sql been applied? ${error?.message ?? ''}`,
-    )
-  }
-  return data.outlet_id
+  const code = outletCode()
+  const existing = outletIdByCode.get(code)
+  if (existing) return existing
+
+  const pending = (async () => {
+    const db = createAdminClient()
+    const { data, error } = await db.from('outlets').select('outlet_id').eq('code', code).single()
+
+    if (error || !data) {
+      throw new Error(
+        `No outlet with code "${code}". Has 0002_seed.sql been applied? ${error?.message ?? ''}`,
+      )
+    }
+    return data.outlet_id
+  })()
+
+  // A transient failure must not be memoised for the life of the process.
+  pending.catch(() => outletIdByCode.delete(code))
+
+  outletIdByCode.set(code, pending)
+  return pending
 })
 
 /** Name and code of the outlet this deployment serves, for the admin header. */
@@ -103,21 +128,44 @@ async function loadConfig(): Promise<AppConfig> {
   return config
 }
 
+/**
+ * Wraps a loader in Next's cross-request cache, building the wrapper ONCE.
+ *
+ * The wrapper used to be constructed inside the caller on every invocation.
+ * That is the kind of thing that looks harmless and is not: a fresh wrapper per
+ * call does not reliably hit the entry the previous one wrote, so the 60s
+ * window never did much and `app_config` was being re-read dozens of times per
+ * page. Building it once, at module scope, is what makes the cache a cache.
+ *
+ * Every entry carries the same tag, so one `revalidateTag(CONFIG_TAG)` after a
+ * CMS save drops all of them together.
+ */
+export const CONFIG_TAG = 'app-config'
+
+function crossRequest<T>(loader: () => Promise<T>, key: string): () => Promise<T> {
+  let wrapped: (() => Promise<T>) | null = null
+  return async () => {
+    if (!wrapped) {
+      const { unstable_cache } = await import('next/cache')
+      wrapped = unstable_cache(loader, [key, outletCode()], {
+        revalidate: REVALIDATE_SECONDS,
+        tags: [CONFIG_TAG],
+      })
+    }
+    return wrapped()
+  }
+}
+
+const cachedConfig = crossRequest(loadConfig, 'app-config')
+
 /** The whole CMS config, fully typed. Never throws, never returns undefined. */
-export const getConfig = cache(async (): Promise<AppConfig> => {
-  const { unstable_cache } = await import('next/cache')
-  const cached = unstable_cache(loadConfig, ['app-config', outletCode()], {
-    revalidate: REVALIDATE_SECONDS,
-    tags: ['app-config'],
-  })
-  return cached()
-})
+export const getConfig = cache(async (): Promise<AppConfig> => cachedConfig())
 
 // -----------------------------------------------------------------------------
 // Reference data
 // -----------------------------------------------------------------------------
 
-export const getCategories = cache(async (): Promise<Category[]> => {
+async function loadCategories(): Promise<Category[]> {
   if (allowOfflineSeedFallback()) return REFERENCE_DEFAULTS.categories
   const db = createAdminClient()
   const outletId = await getOutletId()
@@ -131,9 +179,9 @@ export const getCategories = cache(async (): Promise<Category[]> => {
 
   if (error) throw new Error(`Could not load categories: ${error.message}`)
   return data ?? []
-})
+}
 
-export const getRatingScale = cache(async (): Promise<RatingFace[]> => {
+async function loadRatingScale(): Promise<RatingFace[]> {
   if (allowOfflineSeedFallback()) return REFERENCE_DEFAULTS.ratingScale
   const db = createAdminClient()
   const outletId = await getOutletId()
@@ -155,9 +203,9 @@ export const getRatingScale = cache(async (): Promise<RatingFace[]> => {
     }
     return { ...row, face_key: row.face_key }
   })
-})
+}
 
-export const getIssues = cache(async (kind: IssueKind): Promise<Issue[]> => {
+async function loadIssues(kind: IssueKind): Promise<Issue[]> {
   if (allowOfflineSeedFallback()) {
     return REFERENCE_DEFAULTS.issues.filter((issue) => issue.kind === kind)
   }
@@ -174,13 +222,13 @@ export const getIssues = cache(async (kind: IssueKind): Promise<Issue[]> => {
 
   if (error) throw new Error(`Could not load ${kind} issues: ${error.message}`)
   return (data ?? []).map((row) => ({ ...row, kind }))
-})
+}
 
 /**
  * The comment-intelligence lexicon (§9), themes with their keywords.
  * Read from the database, never a map in code.
  */
-export const getThemeLexicon = cache(async (): Promise<Theme[]> => {
+async function loadThemeLexicon(): Promise<Theme[]> {
   if (allowOfflineSeedFallback()) return REFERENCE_DEFAULTS.themes
   const db = createAdminClient()
   const outletId = await getOutletId()
@@ -203,6 +251,35 @@ export const getThemeLexicon = cache(async (): Promise<Theme[]> => {
       .filter((k: { active: boolean }) => k.active)
       .map((k: { keyword: string }) => k.keyword),
   }))
-})
+}
 
 export type { AppConfig, Category, Issue, IssueKind, RatingFace, Theme }
+
+/**
+ * Reference data, cached across requests like the config it sits beside.
+ *
+ * Categories, the rating scale, issue chips and the theme lexicon are CMS rows
+ * that change when somebody edits them and not otherwise, yet every one of them
+ * was being re-read on every render — and each read first re-resolved the
+ * outlet id. They share the config tag, so a settings save drops them together.
+ */
+const cachedCategories = crossRequest(loadCategories, 'categories')
+const cachedRatingScale = crossRequest(loadRatingScale, 'rating-scale')
+const cachedThemeLexicon = crossRequest(loadThemeLexicon, 'theme-lexicon')
+
+// getIssues takes a kind, so it needs one cache entry per kind rather than one
+// entry keyed on whichever kind happened to be asked for first.
+const cachedIssuesByKind = new Map<IssueKind, () => Promise<Issue[]>>()
+function cachedIssues(kind: IssueKind): () => Promise<Issue[]> {
+  let entry = cachedIssuesByKind.get(kind)
+  if (!entry) {
+    entry = crossRequest(() => loadIssues(kind), `issues-${kind}`)
+    cachedIssuesByKind.set(kind, entry)
+  }
+  return entry
+}
+
+export const getCategories = cache(async (): Promise<Category[]> => cachedCategories())
+export const getRatingScale = cache(async (): Promise<RatingFace[]> => cachedRatingScale())
+export const getIssues = cache(async (kind: IssueKind): Promise<Issue[]> => cachedIssues(kind)())
+export const getThemeLexicon = cache(async (): Promise<Theme[]> => cachedThemeLexicon())

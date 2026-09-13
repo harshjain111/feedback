@@ -36,7 +36,14 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  await supabase.auth.getUser()
+  /*
+   * getClaims() rather than getUser(): this runs on EVERY admin request, and
+   * getUser() made it a network round trip to the Auth server before the page
+   * could even start rendering. getClaims() verifies the ES256 token locally
+   * and still refreshes the session when it is close to expiring, which is the
+   * only thing this middleware exists to do.
+   */
+  await supabase.auth.getClaims()
 
   return response
 }

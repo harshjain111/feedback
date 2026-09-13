@@ -39,7 +39,7 @@ async function decorate(
     client.from('feedback_issues').select('feedback_id, issues(name)').in('feedback_id', ids),
     client
       .from('guests_visible')
-      .select('guest_id, name, phone_masked')
+      .select('guest_id, name, phone_masked, phone')
       .in(
         'guest_id',
         rawRows.map((row) => row.guest_id).filter((id): id is string => Boolean(id)),
@@ -80,6 +80,9 @@ async function decorate(
       localTime: row.local_time,
       guestName: guest?.name ?? null,
       guestPhoneMasked: guest?.phone_masked ?? null,
+      // The real number for MANAGER+; the view returns NULL for STAFF, who keep
+      // seeing only the masked form (§8).
+      guestPhone: guest?.phone ?? null,
       overallScore: row.overall_score === null ? null : Number(row.overall_score),
       sentiment: toSentiment(row.sentiment),
       ratings: (ratingsBy.get(row.feedback_id) ?? []).sort((a, b) => a.name.localeCompare(b.name)),

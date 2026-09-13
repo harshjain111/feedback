@@ -84,6 +84,15 @@ export type FeedbackListItem = {
   localTime: string
   guestName: string | null
   guestPhoneMasked: string | null
+  /**
+   * The guest's number in full, or null when the caller is STAFF.
+   *
+   * Masking on the list was removed at the client's request (0021): the whole
+   * point of the list is ringing back the guest whose visit went wrong, and
+   * revealing one number at a time made that unusable. Prefer this and fall
+   * back to `guestPhoneMasked` when it is null.
+   */
+  guestPhone: string | null
   overallScore: number | null
   sentiment: 'positive' | 'neutral' | 'negative' | null
   ratings: { categoryId: string; name: string; rating: number }[]

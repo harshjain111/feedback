@@ -2,13 +2,14 @@
 
 import { revalidateTag } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth'
+import { CONFIG_TAG } from '@/lib/config'
 import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/server'
 
 /**
  * The kill switch, from the admin side (PHOTO_MODULE.md §8b).
  *
- * revalidateTag('config') is not optional garnish. The kiosk reads config at
+ * revalidateTag(CONFIG_TAG) is not optional garnish. The kiosk reads config at
  * the start of every journey and the server caches it for 60s; without the
  * invalidation a manager watching a printer jam would toggle this and watch
  * the next three guests still be offered a print. With it, the change lands on
@@ -49,6 +50,10 @@ export async function setMemoryEnabled(
     after: { enabled, source },
   })
 
-  revalidateTag('config')
+  // CONFIG_TAG, not the literal 'config' this used to pass. The cache entries
+  // are tagged 'app-config', so the old string matched nothing and the kill
+  // switch did not actually drop the cached config — the kiosk kept serving the
+  // previous value until the 60s window lapsed on its own.
+  revalidateTag(CONFIG_TAG)
   return { ok: true }
 }

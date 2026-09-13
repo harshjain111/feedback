@@ -32,16 +32,29 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) return null
+  /*
+   * getClaims(), not getUser().
+   *
+   * getUser() is a NETWORK round trip to the Auth server on every single call,
+   * and at ~340ms from this deployment that was showing up directly in TTFB —
+   * twice per page, because the middleware made the same call again. This
+   * project signs with ES256, so getClaims() verifies the token locally with
+   * WebCrypto against a JWKS it fetches once and caches.
+   *
+   * The security difference is real but narrow: a token revoked server-side
+   * stays cryptographically valid until it expires. It buys nothing here,
+   * because access is decided by the app_users row read below — `active` is
+   * checked on every request by requireUser(), and RLS re-checks underneath.
+   * Deactivating someone still locks them out immediately.
+   */
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims()
+  const userId = claimsData?.claims?.sub
+  if (claimsError || !userId) return null
 
   const { data, error } = await supabase
     .from('app_users')
     .select('user_id, outlet_id, name, email, role, active')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .maybeSingle()
 
   // Checked separately, not as `error || !data`: the Postgrest result is a

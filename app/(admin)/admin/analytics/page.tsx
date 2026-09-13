@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { CategoryTable } from '@/components/admin/CategoryTable'
 import { IssueTable } from '@/components/admin/IssueTable'
 import { SectionHeading } from '@/components/admin/SectionHeading'
+import { ExportButton } from '@/components/admin/ExportButton'
 import { ThemeTables } from '@/components/admin/ThemeTables'
 import { TimeAndDay } from '@/components/admin/TimeAndDay'
 import { TrendChart } from '@/components/admin/TrendChart'
@@ -68,6 +69,7 @@ export default async function AdminAnalyticsPage({
           title="Overall satisfaction"
           note="A day with no feedback is a gap in the line, never a zero."
           level="page"
+          action={can(user, 'export:data') ? <ExportButton range={range} /> : null}
         />
         <div className="border-line bg-surface rounded-2xl border p-4">
           <TrendChart points={overall} height={260} />

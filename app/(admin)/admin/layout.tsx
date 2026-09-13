@@ -3,11 +3,12 @@ import { DateRangeFilter } from '@/components/admin/DateRangeFilter'
 import { OutletSelector } from '@/components/admin/OutletSelector'
 import { DeviceHealth } from '@/components/admin/DeviceHealth'
 import { Sidebar } from '@/components/admin/Sidebar'
-import { requireUser } from '@/lib/auth'
+import { HeaderSkeleton } from '@/components/admin/Skeleton'
+import { requireUser, type CurrentUser } from '@/lib/auth'
 import { getConfig, getOutlet } from '@/lib/config'
 import { can } from '@/lib/permissions'
 import { memorySwitch, BLOCKED_LABELS } from '@/lib/memory-switch'
-import { createClient } from '@/lib/supabase/server'
+import { getKiosks } from '@/lib/queries/kiosks'
 
 /**
  * The admin shell (§19).
@@ -31,29 +32,17 @@ import { createClient } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser()
-  const [outlet, config] = await Promise.all([getOutlet(), getConfig()])
-
   /*
-   * Device health, read straight from the kiosk's own heartbeat (§6). Cheap —
-   * one row — and it belongs in the layout rather than on the dashboard because
-   * a printer that jammed while a manager is reading the feedback list is still
-   * a printer that jammed.
+   * ONLY the guard is awaited here, and that is the point.
+   *
+   * This used to also await the outlet, the config and a kiosks row before
+   * returning any markup, so nothing at all was painted — no sidebar, no
+   * heading, no skeleton — until four round trips had completed. On a slow link
+   * that reads as a frozen app, which is exactly the complaint. Everything the
+   * chrome needs now streams in behind its own boundary while the shell and the
+   * page render immediately.
    */
-  const supabase = await createClient()
-  const { data: kiosk } = await supabase
-    .from('kiosks')
-    .select('printer_status, camera_status')
-    .eq('outlet_id', user.outletId)
-    .eq('active', true)
-    .limit(1)
-    .maybeSingle()
-
-  const state = memorySwitch(config.memory)
-  const blockedReason =
-    state.blockedBy === null || state.blockedBy === 'master'
-      ? null
-      : BLOCKED_LABELS[state.blockedBy]
+  const user = await requireUser()
 
   return (
     <div className="flex min-h-dvh" style={{ background: 'var(--color-admin-bg)' }}>
@@ -61,15 +50,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="border-line bg-surface flex flex-wrap items-center justify-between gap-4 border-b px-6 py-3">
-          <OutletSelector name={outlet.name} code={outlet.code} />
+          <Suspense fallback={<HeaderSkeleton />}>
+            <ShellChrome user={user} />
+          </Suspense>
 
-          <DeviceHealth
-            printerStatus={kiosk?.printer_status ?? 'unknown'}
-            cameraStatus={kiosk?.camera_status ?? 'unknown'}
-            memoryEnabled={config.memory.enabled}
-            canToggle={can(user, 'manage:cms')}
-            blockedReason={blockedReason}
-          />
           {/* useSearchParams needs a Suspense boundary to keep the rest of the
               shell statically renderable. */}
           <Suspense fallback={null}>
@@ -80,5 +64,39 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <main className="min-w-0 flex-1 p-6">{children}</main>
       </div>
     </div>
+  )
+}
+
+/**
+ * The parts of the header that need the database: which outlet this is, and
+ * whether the kiosk's printer and camera are alive.
+ *
+ * Device health belongs in the shell rather than on the dashboard because a
+ * printer that jammed while a manager is reading the feedback list is still a
+ * printer that jammed (§6).
+ */
+async function ShellChrome({ user }: { user: CurrentUser }) {
+  const [outlet, config, kiosks] = await Promise.all([getOutlet(), getConfig(), getKiosks()])
+
+  const state = memorySwitch(config.memory)
+  const blockedReason =
+    state.blockedBy === null || state.blockedBy === 'master'
+      ? null
+      : BLOCKED_LABELS[state.blockedBy]
+
+  const kiosk = kiosks[0]
+
+  return (
+    <>
+      <OutletSelector name={outlet.name} code={outlet.code} />
+
+      <DeviceHealth
+        printerStatus={kiosk?.printerStatus ?? 'unknown'}
+        cameraStatus={kiosk?.cameraStatus ?? 'unknown'}
+        memoryEnabled={config.memory.enabled}
+        canToggle={can(user, 'manage:cms')}
+        blockedReason={blockedReason}
+      />
+    </>
   )
 }

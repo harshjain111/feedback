@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { GuestFilters } from '@/components/admin/GuestFilters'
+import { ExportButton } from '@/components/admin/ExportButton'
 import { SectionHeading } from '@/components/admin/SectionHeading'
 import { requireUser } from '@/lib/auth'
 import { can } from '@/lib/permissions'
 import { getGuestList } from '@/lib/queries'
 import type { GuestFilterKey } from '@/lib/queries/types'
 import { cn } from '@/lib/cn'
+import { parseRange } from '@/lib/range'
 
 const PAGE_SIZE = 30
 
@@ -54,6 +56,7 @@ export default async function AdminGuestsPage({
         title="Guests"
         note={`${result.total} guest${result.total === 1 ? '' : 's'} · phone numbers are masked everywhere on this page.`}
         level="page"
+        action={can(user, 'export:data') ? <ExportButton range={parseRange(params)} /> : null}
       />
 
       <GuestFilters />

@@ -190,6 +190,14 @@ describe('STAFF — follow-ups assigned to them, and nothing else', () => {
     expect(fromView[0]?.name).toBe('Asha')
     expect(fromView[0]?.phone_masked).toBe('XXXXXX3210')
 
+    // 0021 added a `phone` column to the view holding the REAL number for
+    // MANAGER+. STAFF must still get nothing from it — without this assertion
+    // the test above passes whatever that column returns, because it only ever
+    // selected phone_masked.
+    const real = await rows<{ phone: string | null }>(f.db, `select phone from guests_visible`)
+    expect(real.length).toBe(1)
+    expect(real[0]?.phone, 'STAFF must never receive an unmasked number').toBeNull()
+
     await f.db.close()
   })
 
@@ -242,6 +250,11 @@ describe('MANAGER — operations, no CMS, no users', () => {
       `select phone_masked from guests_visible`,
     )
     expect(view[0]?.phone_masked).toBe('XXXXXX3210')
+
+    // ...and, since 0021, the real number alongside it, so the feedback list
+    // can show something a manager can actually ring.
+    const real = await rows<{ phone: string | null }>(f.db, `select phone from guests_visible`)
+    expect(real[0]?.phone).toBe('9876543210')
     await f.db.close()
   })
 

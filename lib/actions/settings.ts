@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath, revalidateTag } from 'next/cache'
+import { CONFIG_TAG } from '@/lib/config'
 import { getCurrentUser } from '@/lib/auth'
 import { CONFIG_DEFAULTS } from '@/lib/config.defaults'
 import { can } from '@/lib/permissions'
@@ -48,7 +49,7 @@ async function auditConfig(
 
 /** Anything the kiosk reads goes through getConfig(), which is tagged. */
 function refreshKiosk(): void {
-  revalidateTag('app-config')
+  revalidateTag(CONFIG_TAG)
   revalidatePath('/', 'layout')
   revalidatePath('/admin/settings', 'layout')
 }

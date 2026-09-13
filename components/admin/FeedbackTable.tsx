@@ -1,29 +1,25 @@
-'use client'
-
 import Link from 'next/link'
-import { useState } from 'react'
-import { ArrowRight, ChevronDown, MessageSquare, PhoneCall } from 'lucide-react'
+import { ChevronRight, MessageSquare, PhoneCall } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import type { FeedbackListItem, Paged } from '@/lib/queries/types'
 import type { RatingFace } from '@/lib/config.types'
-import { cn } from '@/lib/cn'
 
 /**
  * The feedback list (§29).
  *
- * Rebuilt around one question: what does a manager actually do here? They scan
- * for the bad ones, then read the bad one. The old table answered neither well —
- * eight columns of equal weight, per-category scores as unlabelled coloured dots
- * that you had to hover to decode, and the comment clipped to an excerpt with
- * the rest only reachable through a page load.
+ * One row per submission, and THE WHOLE ROW IS A LINK to that feedback's
+ * overview page. It briefly expanded in place instead; the client asked for
+ * navigation, and they are right that it is the better default here — the
+ * overview page is where the follow-up thread, the guest's history and the
+ * actions live, and an inline panel could never hold those without becoming a
+ * second, worse copy of the page.
  *
- * So: one row per feedback, scannable at a glance, and CLICK TO EXPAND for the
- * whole thing in place. Opening a row is instant because everything it shows is
- * already loaded — the list query returns full ratings, issues and comment
- * excerpt, and the only thing a detail page adds is the follow-up thread.
+ * Rendered on the server. There is no client component in this file any more,
+ * which also means none of it ships to the browser.
  *
- * Every rating carries its category name. A colour tells you something is wrong;
- * only a label tells you what.
+ * The comment is shown in full-width wrapping text rather than clipped to a
+ * single line. A feedback list where you cannot read the feedback is a table of
+ * metadata.
  */
 export function FeedbackTable({
   page,
@@ -34,8 +30,6 @@ export function FeedbackTable({
   scale: RatingFace[]
   searchParams: string
 }) {
-  const [openId, setOpenId] = useState<string | null>(null)
-
   const colourFor = (rating: number) =>
     scale.find((face) => face.value === rating)?.colour ?? 'var(--color-line-strong)'
 
@@ -48,185 +42,106 @@ export function FeedbackTable({
   }
 
   return (
-    <div className="space-y-3">
-      <ul className="border-line bg-surface divide-line divide-y overflow-hidden rounded-2xl border">
-        {page.items.map((item) => {
-          const open = openId === item.feedbackId
-          const negative = item.sentiment === 'negative'
+    <ul className="border-line bg-surface divide-line divide-y overflow-hidden rounded-2xl border">
+      {page.items.map((item) => (
+        <li key={item.feedbackId}>
+          <Link
+            href={`/admin/feedback/${item.feedbackId}?${searchParams}`}
+            className="hover:bg-ground-sunk/60 focus-visible:bg-ground-sunk/60 group flex w-full items-start gap-4 px-4 py-3.5 transition-colors outline-none"
+          >
+            {/* The score, as the thing the eye lands on first. */}
+            <span
+              className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-full text-[15px] font-semibold text-white tabular-nums"
+              style={{
+                background:
+                  item.overallScore === null
+                    ? 'var(--color-line-strong)'
+                    : colourFor(Math.round(item.overallScore)),
+              }}
+            >
+              {item.overallScore === null ? '—' : item.overallScore.toFixed(1)}
+            </span>
 
-          return (
-            <li key={item.feedbackId}>
-              {/*
-                The whole row is the control. A manager scanning a list should
-                not have to find a chevron — but the chevron stays as the visual
-                promise that there is more underneath.
-              */}
-              <button
-                type="button"
-                onClick={() => setOpenId(open ? null : item.feedbackId)}
-                aria-expanded={open}
-                className={cn(
-                  'hover:bg-ground-sunk/60 flex w-full items-center gap-4 px-4 py-3 text-left transition-colors',
-                  open && 'bg-ground-sunk/50',
-                )}
-              >
-                {/* The score, as the thing the eye lands on first. */}
-                <span
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-[15px] font-semibold text-white tabular-nums"
-                  style={{
-                    background:
-                      item.overallScore === null
-                        ? 'var(--color-line-strong)'
-                        : colourFor(Math.round(item.overallScore)),
-                  }}
-                >
-                  {item.overallScore === null ? '—' : item.overallScore.toFixed(1)}
+            <span className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                <span className="text-ink text-[15px] font-medium">
+                  {item.guestName ?? 'Anonymous'}
                 </span>
-
-                <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-ink text-[15px] font-medium">
-                      {item.guestName ?? 'Anonymous'}
-                    </span>
-                    <span className="text-ink-muted text-xs tabular-nums">
-                      {item.localDate} · {item.localTime.slice(0, 5)}
-                    </span>
-                    {item.followUpRequested ? (
-                      <span
-                        className="inline-flex items-center gap-1 text-xs font-medium"
-                        style={{ color: 'var(--color-terracotta)' }}
-                      >
-                        <PhoneCall size={12} strokeWidth={2.2} aria-hidden="true" />
-                        Wants a call
-                      </span>
-                    ) : null}
-                  </span>
-
-                  {/* One line of the comment, or the issues if there is none. */}
-                  {item.comment ? (
-                    <span className="text-ink-soft mt-0.5 flex items-start gap-1.5 text-sm">
-                      <MessageSquare
-                        size={13}
-                        strokeWidth={2}
-                        aria-hidden="true"
-                        className="text-ink-muted mt-1 shrink-0"
-                      />
-                      <span className="line-clamp-1">{item.comment}</span>
-                    </span>
-                  ) : item.issues.length > 0 ? (
-                    <span className="text-ink-muted mt-0.5 block truncate text-sm">
-                      {item.issues.join(' · ')}
-                    </span>
-                  ) : null}
-                </span>
-
                 {/*
-                  Per-category scores WITH their names. Hidden on narrow screens
-                  rather than squeezed — they are in the expanded panel, which is
-                  where a phone-sized reader will look anyway.
+                  The real number, not XXXXXX3210 (0021). The query returns null
+                  here for STAFF, who fall back to the masked form.
                 */}
-                <span className="hidden shrink-0 items-center gap-2 lg:flex">
-                  {item.ratings.map((rating) => (
-                    <RatingChip
-                      key={rating.categoryId}
-                      name={rating.name}
-                      rating={rating.rating}
-                      colour={colourFor(rating.rating)}
-                    />
-                  ))}
+                {(item.guestPhone ?? item.guestPhoneMasked) !== null ? (
+                  <span className="text-ink-soft text-xs tabular-nums">
+                    {item.guestPhone ?? item.guestPhoneMasked}
+                  </span>
+                ) : null}
+                <span className="text-ink-muted text-xs tabular-nums">
+                  {item.localDate} · {item.localTime.slice(0, 5)}
                 </span>
+                {item.followUpRequested ? (
+                  <span
+                    className="inline-flex items-center gap-1 text-xs font-medium"
+                    style={{ color: 'var(--color-terracotta)' }}
+                  >
+                    <PhoneCall size={12} strokeWidth={2.2} aria-hidden="true" />
+                    Wants a call
+                  </span>
+                ) : null}
+              </span>
 
-                <StatusBadge status={item.status} className="shrink-0" />
-
-                <ChevronDown
-                  size={16}
-                  strokeWidth={2}
-                  aria-hidden="true"
-                  className={cn(
-                    'text-ink-muted shrink-0 transition-transform',
-                    open && 'rotate-180',
-                  )}
-                />
-              </button>
-
-              {open ? (
-                <div
-                  className="border-line bg-ground-sunk/30 border-t px-4 py-4"
-                  style={{ paddingLeft: 'calc(1rem + 2.75rem + 1rem)' }}
-                >
-                  <div className="grid gap-5 lg:grid-cols-[1fr_auto]">
-                    <div className="min-w-0 space-y-4">
-                      {/* The whole comment. This is what the page is for. */}
-                      {item.comment ? (
-                        <div>
-                          <p className="text-ink-muted text-xs font-medium tracking-wide uppercase">
-                            What they said
-                          </p>
-                          <p className="text-ink mt-1.5 text-[15px] leading-relaxed whitespace-pre-wrap">
-                            {item.comment}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-ink-muted text-sm">No comment was left.</p>
-                      )}
-
-                      {item.issues.length > 0 ? (
-                        <div>
-                          <p className="text-ink-muted text-xs font-medium tracking-wide uppercase">
-                            {negative ? 'What went wrong' : 'What they loved'}
-                          </p>
-                          <div className="mt-1.5 flex flex-wrap gap-1.5">
-                            {item.issues.map((issue) => (
-                              <span
-                                key={issue}
-                                className="border-line text-ink-soft rounded-full border px-2.5 py-1 text-xs"
-                              >
-                                {issue}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {/* Repeated here because the row hides them under lg. */}
-                      <div className="lg:hidden">
-                        <p className="text-ink-muted text-xs font-medium tracking-wide uppercase">
-                          Ratings
-                        </p>
-                        <div className="mt-1.5 flex flex-wrap gap-2">
-                          {item.ratings.map((rating) => (
-                            <RatingChip
-                              key={rating.categoryId}
-                              name={rating.name}
-                              rating={rating.rating}
-                              colour={colourFor(rating.rating)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-ink-muted space-y-2 text-xs lg:w-56">
-                      <p>
-                        <span className="text-ink-soft font-medium">{item.feedbackCode}</span>
-                      </p>
-                      {item.guestPhoneMasked ? <p>{item.guestPhoneMasked}</p> : null}
-                      <Link
-                        href={`/admin/feedback/${item.feedbackId}?${searchParams}`}
-                        className="text-accent hover:text-accent-hover inline-flex items-center gap-1.5 text-sm font-semibold"
-                      >
-                        Open and follow up
-                        <ArrowRight size={14} strokeWidth={2.4} aria-hidden="true" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+              {/*
+                The guest's words, wrapping across the full width of the row and
+                clamped at three lines rather than one. Three lines carries a
+                whole short complaint; one line carried "worst South Indian and…"
+              */}
+              {item.comment ? (
+                <span className="text-ink-soft mt-1.5 flex items-start gap-1.5 text-sm leading-relaxed">
+                  <MessageSquare
+                    size={13}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                    className="text-ink-muted mt-[5px] shrink-0"
+                  />
+                  <span className="line-clamp-3">{item.comment}</span>
+                </span>
               ) : null}
-            </li>
-          )
-        })}
-      </ul>
-    </div>
+
+              {/* Ratings, each with its category name — a colour says something
+                  is wrong, only a label says which. */}
+              <span className="mt-2 flex flex-wrap items-center gap-1.5">
+                {item.ratings.map((rating) => (
+                  <RatingChip
+                    key={rating.categoryId}
+                    name={rating.name}
+                    rating={rating.rating}
+                    colour={colourFor(rating.rating)}
+                  />
+                ))}
+                {item.issues.map((issue) => (
+                  <span
+                    key={issue}
+                    className="border-line text-ink-muted rounded-full border px-2.5 py-0.5 text-[11px]"
+                  >
+                    {issue}
+                  </span>
+                ))}
+              </span>
+            </span>
+
+            <span className="mt-0.5 flex shrink-0 items-center gap-3">
+              <StatusBadge status={item.status} />
+              <ChevronRight
+                size={16}
+                strokeWidth={2}
+                aria-hidden="true"
+                className="text-ink-muted group-hover:text-ink-soft transition-colors"
+              />
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
   )
 }
 

@@ -1,5 +1,5 @@
-import { TableSkeleton } from '@/components/admin/Skeleton'
+import { AnalyticsSkeleton } from '@/components/admin/Skeleton'
 
 export default function Loading() {
-  return <TableSkeleton />
+  return <AnalyticsSkeleton />
 }
