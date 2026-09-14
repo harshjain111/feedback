@@ -66,7 +66,7 @@ export function DeviceHealth({
     <div className="flex flex-wrap items-center gap-2">
       {printerBad ? (
         <span
-          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium"
+          className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium lg:px-3 lg:py-1.5 lg:text-xs"
           style={{
             borderColor: 'color-mix(in srgb, var(--color-bad) 40%, transparent)',
             color: 'var(--color-bad)',
@@ -84,7 +84,7 @@ export function DeviceHealth({
 
       {cameraBad ? (
         <span
-          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium"
+          className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium lg:px-3 lg:py-1.5 lg:text-xs"
           style={{
             borderColor: 'color-mix(in srgb, var(--color-bad) 40%, transparent)',
             color: 'var(--color-bad)',
@@ -98,7 +98,7 @@ export function DeviceHealth({
 
       {blockedReason ? (
         <span
-          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium"
+          className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium lg:px-3 lg:py-1.5 lg:text-xs"
           style={{
             borderColor: 'color-mix(in srgb, var(--color-warn) 45%, transparent)',
             color: 'var(--color-warn)',

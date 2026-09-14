@@ -81,27 +81,36 @@ export function AlertBanner() {
         <div
           key={alert.alert_id}
           className={cn(
-            'flex flex-wrap items-center gap-3 rounded-2xl border px-5 py-4',
+            // Stacked on a phone. flex-wrap alone did not help: min-w-0 +
+            // flex-1 let the title shrink instead of pushing the actions onto
+            // their own line, so "Aayush asked to be contacted" rendered one
+            // word per line beside the buttons.
+            'flex flex-col gap-2.5 rounded-2xl border px-4 py-3.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 sm:px-5 sm:py-4',
             alert.severity === 'critical'
               ? 'border-[color:var(--color-bad)]/45 bg-[color:var(--color-bad)]/5'
               : 'border-[color:var(--color-warn)]/45 bg-[color:var(--color-warn)]/5',
           )}
         >
-          <AlertOctagon
-            size={16}
-            strokeWidth={2}
-            aria-hidden="true"
-            className={
-              alert.severity === 'critical'
-                ? 'text-[color:var(--color-bad)]'
-                : 'text-[color:var(--color-warn)]'
-            }
-          />
+          <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
+            <AlertOctagon
+              size={16}
+              strokeWidth={2}
+              aria-hidden="true"
+              className={cn(
+                'mt-0.5 shrink-0 sm:mt-0',
+                alert.severity === 'critical'
+                  ? 'text-[color:var(--color-bad)]'
+                  : 'text-[color:var(--color-warn)]',
+              )}
+            />
 
-          <div className="min-w-0 flex-1">
-            <p className="text-ink text-sm font-semibold">{alert.title}</p>
-            {alert.body ? <p className="text-ink-soft text-xs">{alert.body}</p> : null}
+            <div className="min-w-0 flex-1">
+              <p className="text-ink text-sm font-semibold">{alert.title}</p>
+              {alert.body ? <p className="text-ink-soft text-xs">{alert.body}</p> : null}
+            </div>
           </div>
+
+          <div className="flex flex-wrap items-center gap-3 pl-7 sm:pl-0">
 
           <Link
             href={
@@ -124,6 +133,7 @@ export function AlertBanner() {
             <Check size={12} strokeWidth={2.4} aria-hidden="true" />
             Acknowledge
           </button>
+          </div>
         </div>
       ))}
     </div>

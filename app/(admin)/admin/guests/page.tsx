@@ -75,57 +75,99 @@ export default async function AdminGuestsPage({
           {`No guests visited between ${range.from} and ${range.to}. Widen the date range, or check the filter above — guests are only created when someone leaves a phone number.`}
         </div>
       ) : (
-        <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
+        <div className="border-line bg-surface rounded-2xl border">
           {/*
-            A list of links rather than a table.
+            Two layouts, one link.
 
-            The name alone used to be the link, so clicking the phone, the visit
-            count or anywhere else in the row did nothing — and the row is what
-            people aim at. Same reasoning, and the same interaction, as the
-            feedback list. The grid keeps the columns lined up; `COLUMNS` is
-            shared with the header so they cannot drift apart.
+            Below lg a guest is a card: name, phone, then the numbers on one
+            line. The columnar grid only appears from lg up, where there is room
+            for it — on a phone it was a 860px-wide scroller showing two of six
+            columns, which is not "fits on the screen" in any useful sense.
+
+            The markup is written out twice rather than being made to reflow
+            with display:contents. The duplication is six short expressions and
+            it is obvious; the clever version is neither.
           */}
-          <div className="min-w-[860px]">
-            <div
-              className={cn(
-                'border-line text-ink-muted grid border-b px-4 py-2.5 text-xs uppercase',
-                COLUMNS,
-              )}
-            >
-              <span>Guest</span>
-              <span>Phone</span>
-              <span className="text-right">Visits</span>
-              <span className="text-right">Average</span>
-              <span>Last seen</span>
-              <span>Status</span>
-              <span className="sr-only">Open</span>
-            </div>
+          <div
+            className={cn(
+              'border-line text-ink-muted hidden border-b px-4 py-2.5 text-xs uppercase lg:grid',
+              COLUMNS,
+            )}
+          >
+            <span>Guest</span>
+            <span>Phone</span>
+            <span className="text-right">Visits</span>
+            <span className="text-right">Average</span>
+            <span>Last seen</span>
+            <span>Status</span>
+            <span className="sr-only">Open</span>
+          </div>
 
-            <ul className="divide-line divide-y">
-              {result.items.map((guest) => (
-                <li key={guest.guestId}>
-                  <Link
-                    href={`/admin/guests/${guest.guestId}`}
-                    className={cn(
-                      'hover:bg-ground-sunk/60 focus-visible:bg-ground-sunk/60 group grid items-center px-4 py-2.5 text-sm outline-none',
-                      COLUMNS,
-                    )}
-                  >
+          <ul className="divide-line divide-y">
+            {result.items.map((guest) => (
+              <li key={guest.guestId}>
+                <Link
+                  href={`/admin/guests/${guest.guestId}`}
+                  className="hover:bg-ground-sunk/60 focus-visible:bg-ground-sunk/60 group block px-4 py-3 text-sm outline-none lg:py-2.5"
+                >
+                  {/* Phone and up to lg */}
+                  <span className="lg:hidden">
+                    <span className="flex items-start justify-between gap-3">
+                      <span className="min-w-0">
+                        <span className="text-ink group-hover:text-accent block truncate font-medium">
+                          {guest.name ?? guest.guestCode}
+                        </span>
+                        <span className="text-ink-muted block text-xs">{guest.guestCode}</span>
+                      </span>
+                      <ChevronRight
+                        size={16}
+                        strokeWidth={2}
+                        aria-hidden="true"
+                        className="text-ink-muted mt-1 shrink-0"
+                      />
+                    </span>
+
+                    <span className="text-ink-soft mt-1.5 block text-[13px] tabular-nums">
+                      {guest.phone ?? guest.phoneMasked ?? 'No number'}
+                    </span>
+
+                    <span className="text-ink-muted mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tabular-nums">
+                      <span>
+                        {guest.totalFeedbacks} visit{guest.totalFeedbacks === 1 ? '' : 's'}
+                      </span>
+                      <span
+                        className={cn(guest.isNegative && 'text-[color:var(--color-bad)]')}
+                      >
+                        avg {guest.averageRating === null ? '—' : guest.averageRating.toFixed(2)}
+                      </span>
+                      <span>last {guest.lastFeedbackDate ?? '—'}</span>
+                    </span>
+
+                    <span className="mt-2 flex flex-wrap gap-1">
+                      {guest.hasOpenFollowUp ? <Tag tone="bad">Follow-up open</Tag> : null}
+                      {guest.isRepeat ? (
+                        <Tag tone="neutral">Repeat</Tag>
+                      ) : (
+                        <Tag tone="neutral">New</Tag>
+                      )}
+                      {guest.isHighEngagement ? <Tag tone="good">Engaged</Tag> : null}
+                    </span>
+                  </span>
+
+                  {/* lg and up */}
+                  <span className={cn('hidden items-center lg:grid', COLUMNS)}>
                     <span className="min-w-0 pr-3">
                       <span className="text-ink group-hover:text-accent block truncate font-medium">
                         {guest.name ?? guest.guestCode}
                       </span>
                       <span className="text-ink-muted block text-xs">{guest.guestCode}</span>
                     </span>
-
                     <span className="text-ink-soft tabular-nums">
                       {guest.phone ?? guest.phoneMasked ?? '—'}
                     </span>
-
                     <span className="text-ink text-right tabular-nums">
                       {guest.totalFeedbacks}
                     </span>
-
                     <span
                       className={cn(
                         'text-right tabular-nums',
@@ -134,11 +176,9 @@ export default async function AdminGuestsPage({
                     >
                       {guest.averageRating === null ? '—' : guest.averageRating.toFixed(2)}
                     </span>
-
                     <span className="text-ink-soft tabular-nums">
                       {guest.lastFeedbackDate ?? '—'}
                     </span>
-
                     <span className="flex flex-wrap gap-1">
                       {guest.hasOpenFollowUp ? <Tag tone="bad">Follow-up open</Tag> : null}
                       {guest.isRepeat ? (
@@ -148,18 +188,17 @@ export default async function AdminGuestsPage({
                       )}
                       {guest.isHighEngagement ? <Tag tone="good">Engaged</Tag> : null}
                     </span>
-
                     <ChevronRight
                       size={16}
                       strokeWidth={2}
                       aria-hidden="true"
                       className="text-ink-muted group-hover:text-ink-soft justify-self-end transition-colors"
                     />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

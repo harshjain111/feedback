@@ -126,7 +126,8 @@ export default async function AdminReportsPage({
 
       <section>
         <SectionHeading title="By category" />
-        <table className="border-line w-full border text-sm">
+        <div className="overflow-x-auto print:overflow-visible">
+          <table className="border-line w-full min-w-[520px] border text-sm print:min-w-0">
           <thead className="bg-ground-sunk">
             <tr className="text-ink-muted text-left text-xs uppercase">
               <th className="px-3 py-2 font-medium">Category</th>
@@ -151,7 +152,8 @@ export default async function AdminReportsPage({
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </section>
 
       <section className="grid gap-5 sm:grid-cols-2">
@@ -174,7 +176,8 @@ export default async function AdminReportsPage({
       {type === 'guests' ? (
         <section>
           <SectionHeading title="Repeat guests" note="Phone numbers are masked in reports." />
-          <table className="border-line w-full border text-sm">
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className="border-line w-full min-w-[520px] border text-sm print:min-w-0">
             <thead className="bg-ground-sunk">
               <tr className="text-ink-muted text-left text-xs uppercase">
                 <th className="px-3 py-2 font-medium">Guest</th>
@@ -204,7 +207,8 @@ export default async function AdminReportsPage({
                 </tr>
               ) : null}
             </tbody>
-          </table>
+            </table>
+          </div>
         </section>
       ) : (
         <RankedList

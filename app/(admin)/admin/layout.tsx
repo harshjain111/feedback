@@ -3,6 +3,7 @@ import { DateRangeFilter } from '@/components/admin/DateRangeFilter'
 import { OutletSelector } from '@/components/admin/OutletSelector'
 import { DeviceHealth } from '@/components/admin/DeviceHealth'
 import { Sidebar } from '@/components/admin/Sidebar'
+import { MobileNav } from '@/components/admin/MobileNav'
 import { HeaderSkeleton } from '@/components/admin/Skeleton'
 import { requireUser, type CurrentUser } from '@/lib/auth'
 import { getConfig, getOutlet } from '@/lib/config'
@@ -49,10 +50,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <Sidebar role={user.role} name={user.name} email={user.email} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-line bg-surface flex flex-wrap items-center justify-between gap-4 border-b px-6 py-3">
-          <Suspense fallback={<HeaderSkeleton />}>
-            <ShellChrome user={user} />
-          </Suspense>
+        <header className="border-line bg-surface flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 lg:gap-4 lg:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <MobileNav role={user.role} name={user.name} email={user.email} />
+            <Suspense fallback={<HeaderSkeleton />}>
+              <ShellChrome user={user} />
+            </Suspense>
+          </div>
 
           {/* useSearchParams needs a Suspense boundary to keep the rest of the
               shell statically renderable. */}
@@ -61,7 +65,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Suspense>
         </header>
 
-        <main className="min-w-0 flex-1 p-6">{children}</main>
+        <main className="min-w-0 flex-1 p-4 lg:p-6">{children}</main>
       </div>
     </div>
   )

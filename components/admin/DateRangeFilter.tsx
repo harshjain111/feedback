@@ -52,8 +52,13 @@ export function DateRangeFilter() {
   if (dateless) return null
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <div className="border-line bg-surface inline-flex rounded-full border p-1">
+    <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
+      {/*
+        Six pills are about 420px wide, which does not fit a phone. Scrolling
+        the group keeps it one row and keeps every preset reachable; wrapping
+        would break the pill group's shape into ragged halves.
+      */}
+      <div className="border-line bg-surface inline-flex max-w-full overflow-x-auto rounded-full border p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {RANGE_PRESETS.map((preset) => (
           <button
             key={preset}
@@ -61,7 +66,7 @@ export function DateRangeFilter() {
             onClick={() => apply({ range: preset })}
             aria-pressed={range.preset === preset}
             className={cn(
-              'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+              'shrink-0 rounded-full px-3 py-2 text-[13px] font-medium transition-colors lg:px-4 lg:text-sm',
               range.preset === preset
                 ? 'bg-accent text-accent-ink'
                 : 'text-ink-soft hover:bg-ground-sunk',

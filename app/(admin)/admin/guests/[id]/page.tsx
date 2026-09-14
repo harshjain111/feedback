@@ -100,7 +100,39 @@ export default async function AdminGuestProfilePage({
 
       <section>
         <SectionHeading title="Visit history" />
-        <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
+        {/*
+          On a phone each visit is a card, and the whole card opens that
+          feedback. The 720px table this replaced put the guest's own comment —
+          the reason anyone opens a profile — off the right-hand edge.
+        */}
+        <ul className="border-line bg-surface divide-line divide-y rounded-2xl border lg:hidden">
+          {guest.history.map((visit) => (
+            <li key={visit.feedbackId}>
+              <Link
+                href={`/admin/feedback/${visit.feedbackId}`}
+                className="hover:bg-ground-sunk/60 block px-4 py-3"
+              >
+                <span className="flex items-baseline justify-between gap-3">
+                  <span className="text-ink-soft text-sm tabular-nums">{visit.localDate}</span>
+                  <span className="text-ink text-sm font-semibold tabular-nums">
+                    {visit.overallScore === null ? '—' : visit.overallScore.toFixed(2)}
+                  </span>
+                </span>
+                <span className="text-accent mt-0.5 block text-xs">{visit.feedbackCode}</span>
+                <span className="text-ink-soft mt-1.5 block text-xs">
+                  {visit.ratings.map((r) => `${r.name} ${r.rating}`).join(' · ')}
+                </span>
+                {visit.comment ? (
+                  <span className="text-ink mt-1.5 block text-sm leading-relaxed">
+                    {visit.comment}
+                  </span>
+                ) : null}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <div className="border-line bg-surface hidden overflow-x-auto rounded-2xl border lg:block">
           <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">
