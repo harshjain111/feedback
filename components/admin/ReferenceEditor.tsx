@@ -86,7 +86,84 @@ export function ReferenceEditor({
         </p>
       ) : null}
 
-      <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
+      {/*
+        Below lg every row becomes a card with its fields stacked and labelled.
+        The columns here are dynamic — this editor drives categories, issues,
+        the rating scale and the theme lexicon — so a 680px grid was never going
+        to fit a phone, and the field labels only exist in the header row that
+        scrolls out of view.
+      */}
+      <ul className="border-line bg-surface divide-line divide-y rounded-2xl border lg:hidden">
+        {ordered.map((row, index) => (
+          <li key={row.id} className={cn('px-4 py-3', !row.active && 'opacity-55')}>
+            <div className="flex items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={row.active}
+                  disabled={pending}
+                  onChange={(event) => {
+                    if (!event.target.checked && !window.confirm(deactivateWarning)) {
+                      event.preventDefault()
+                      return
+                    }
+                    run(() => setReferenceActive(table, idColumn, row.id, event.target.checked))
+                  }}
+                  className="h-4 w-4"
+                />
+                <span className="text-ink-muted">{row.active ? 'Active' : 'Hidden'}</span>
+              </label>
+
+              {!fixedRows ? (
+                <span className="flex gap-1">
+                  <button
+                    type="button"
+                    aria-label="Move up"
+                    disabled={pending || index === 0}
+                    onClick={() => move(index, -1)}
+                    className="border-line text-ink-soft hover:bg-ground-sunk rounded border p-1.5 disabled:opacity-30"
+                  >
+                    <ArrowUp size={14} strokeWidth={2} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Move down"
+                    disabled={pending || index === ordered.length - 1}
+                    onClick={() => move(index, 1)}
+                    className="border-line text-ink-soft hover:bg-ground-sunk rounded border p-1.5 disabled:opacity-30"
+                  >
+                    <ArrowDown size={14} strokeWidth={2} aria-hidden="true" />
+                  </button>
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-2.5 space-y-2.5">
+              {columns.map((column) => (
+                <label key={column.key} className="block">
+                  <span className="text-ink-muted block text-[11px] uppercase">
+                    {column.label}
+                  </span>
+                  <span className="mt-1 block">
+                    <EditableCell
+                      column={column}
+                      value={row.values[column.key] ?? ''}
+                      disabled={pending}
+                      onCommit={(value) =>
+                        run(() =>
+                          updateReferenceRow(table, idColumn, row.id, { [column.key]: value }),
+                        )
+                      }
+                    />
+                  </span>
+                </label>
+              ))}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="border-line bg-surface hidden overflow-x-auto rounded-2xl border lg:block">
         <table className="w-full min-w-[680px] text-sm">
           <thead>
             <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">

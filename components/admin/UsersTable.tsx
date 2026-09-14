@@ -22,6 +22,89 @@ export type UserRow = {
  * throws that away. §8 makes deletion OWNER-only, and the button is simply
  * absent for anyone else rather than present-and-failing.
  */
+
+/*
+ * The three controls live here rather than being written once per layout.
+ * The mobile cards and the desktop table both render them, and a role select
+ * that behaves differently in one of the two is exactly the bug that
+ * duplicating interactive markup produces.
+ */
+
+type ControlProps = {
+  user: UserRow
+  isSelf: boolean
+  pending: boolean
+  run: (action: () => Promise<{ ok: boolean; error?: string; password?: string }>) => void
+}
+
+function RoleSelect({
+  user,
+  isSelf,
+  pending,
+  currentRole,
+  run,
+}: ControlProps & { currentRole: Role }) {
+  return (
+    <select
+      value={user.role}
+      disabled={pending || isSelf}
+      aria-label={`Role for ${user.name}`}
+      title={isSelf ? 'You cannot change your own role.' : undefined}
+      onChange={(event) => run(() => setUserRole(user.userId, event.target.value))}
+      className="border-line-strong rounded-lg border px-2 py-1 text-sm disabled:opacity-50"
+    >
+      {ROLES.filter(
+        (role) => role !== 'OWNER' || currentRole === 'OWNER' || user.role === 'OWNER',
+      ).map((role) => (
+        <option key={role} value={role}>
+          {role}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+function ActiveToggle({ user, isSelf, pending, run }: ControlProps) {
+  return (
+    <label className="flex items-center gap-2 text-xs">
+      <input
+        type="checkbox"
+        checked={user.active}
+        disabled={pending || isSelf}
+        aria-label={`${user.name} is active`}
+        onChange={(event) => run(() => setUserActive(user.userId, event.target.checked))}
+        className="h-4 w-4"
+      />
+      <span className="text-ink-muted">{user.active ? 'Active' : 'Disabled'}</span>
+    </label>
+  )
+}
+
+function DeleteButton({ user, isSelf, pending, run }: ControlProps) {
+  if (isSelf) return null
+  return (
+    <button
+      type="button"
+      disabled={pending}
+      aria-label={`Delete ${user.name}`}
+      onClick={() => {
+        if (
+          window.confirm(
+            `Delete ${user.name}?
+
+Deactivating is almost always better: it keeps their notes and audit trail attached to a real person. Deletion cannot be undone.`,
+          )
+        ) {
+          run(() => deleteUser(user.userId))
+        }
+      }}
+      className="text-ink-muted rounded border p-1 hover:text-[color:var(--color-bad)]"
+    >
+      <Trash2 size={13} strokeWidth={2} aria-hidden="true" />
+    </button>
+  )
+}
+
 export function UsersTable({
   users,
   currentUserId,
@@ -67,7 +150,44 @@ export function UsersTable({
         </div>
       ) : null}
 
-      <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
+      {/* Below lg, one card per person. The 720px table pushed Role and Status
+          — the only two things anyone comes here to change — off the screen. */}
+      <ul className="border-line bg-surface divide-line divide-y rounded-2xl border lg:hidden">
+        {users.map((user) => {
+          const isSelf = user.userId === currentUserId
+          return (
+            <li key={user.userId} className={cn('px-4 py-3', !user.active && 'opacity-55')}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-ink truncate text-sm font-medium">
+                    {user.name}
+                    {isSelf ? (
+                      <span className="text-ink-muted ml-1.5 text-xs">(you)</span>
+                    ) : null}
+                  </p>
+                  <p className="text-ink-soft truncate text-xs">{user.email}</p>
+                </div>
+                {canDelete ? (
+                  <DeleteButton user={user} isSelf={isSelf} pending={pending} run={run} />
+                ) : null}
+              </div>
+
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <RoleSelect
+                  user={user}
+                  isSelf={isSelf}
+                  pending={pending}
+                  currentRole={currentRole}
+                  run={run}
+                />
+                <ActiveToggle user={user} isSelf={isSelf} pending={pending} run={run} />
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+
+      <div className="border-line bg-surface hidden overflow-x-auto rounded-2xl border lg:block">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">
@@ -89,58 +209,20 @@ export function UsersTable({
                   </td>
                   <td className="text-ink-soft px-4 py-2.5">{user.email}</td>
                   <td className="px-4 py-2.5">
-                    <select
-                      value={user.role}
-                      disabled={pending || isSelf}
-                      title={isSelf ? 'You cannot change your own role.' : undefined}
-                      onChange={(event) => run(() => setUserRole(user.userId, event.target.value))}
-                      className="border-line-strong rounded-lg border px-2 py-1 text-sm disabled:opacity-50"
-                    >
-                      {ROLES.filter(
-                        (role) =>
-                          role !== 'OWNER' || currentRole === 'OWNER' || user.role === 'OWNER',
-                      ).map((role) => (
-                        <option key={role} value={role}>
-                          {role}
-                        </option>
-                      ))}
-                    </select>
+                    <RoleSelect
+                      user={user}
+                      isSelf={isSelf}
+                      pending={pending}
+                      currentRole={currentRole}
+                      run={run}
+                    />
                   </td>
                   <td className="px-4 py-2.5">
-                    <label className="flex items-center gap-2 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={user.active}
-                        disabled={pending || isSelf}
-                        onChange={(event) =>
-                          run(() => setUserActive(user.userId, event.target.checked))
-                        }
-                        className="h-4 w-4"
-                      />
-                      <span className="text-ink-muted">{user.active ? 'Active' : 'Disabled'}</span>
-                    </label>
+                    <ActiveToggle user={user} isSelf={isSelf} pending={pending} run={run} />
                   </td>
                   {canDelete ? (
                     <td className="px-4 py-2.5">
-                      {isSelf ? null : (
-                        <button
-                          type="button"
-                          disabled={pending}
-                          aria-label={`Delete ${user.name}`}
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                `Delete ${user.name}?\n\nDeactivating is almost always better: it keeps their notes and audit trail attached to a real person. Deletion cannot be undone.`,
-                              )
-                            ) {
-                              run(() => deleteUser(user.userId))
-                            }
-                          }}
-                          className="text-ink-muted rounded border p-1 hover:text-[color:var(--color-bad)]"
-                        >
-                          <Trash2 size={13} strokeWidth={2} aria-hidden="true" />
-                        </button>
-                      )}
+                      <DeleteButton user={user} isSelf={isSelf} pending={pending} run={run} />
                     </td>
                   ) : null}
                 </tr>

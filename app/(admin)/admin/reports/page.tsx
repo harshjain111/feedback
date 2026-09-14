@@ -126,7 +126,30 @@ export default async function AdminReportsPage({
 
       <section>
         <SectionHeading title="By category" />
-        <div className="overflow-x-auto print:overflow-visible">
+
+        {/* Cards on a phone; the table still renders for wide screens and for
+            print, which is what this page is built around. */}
+        <ul className="border-line divide-line divide-y rounded-2xl border lg:hidden print:hidden">
+          {categories.map((category) => (
+            <li key={category.categoryId} className="px-4 py-3">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-ink font-medium">{category.name}</span>
+                <span className="text-ink text-lg font-semibold tabular-nums">
+                  {category.score.value === null ? '—' : category.score.value.toFixed(2)}
+                </span>
+              </div>
+              <div className="mt-1.5">
+                <DeltaBadge comparison={category.score} polarity="higher-is-better" />
+              </div>
+              <p className="text-ink-muted mt-1.5 text-xs tabular-nums">
+                {category.ratingCount} rating{category.ratingCount === 1 ? '' : 's'} ·{' '}
+                {category.negativeCount} negative
+              </p>
+            </li>
+          ))}
+        </ul>
+
+        <div className="hidden overflow-x-auto lg:block print:block print:overflow-visible">
           <table className="border-line w-full min-w-[520px] border text-sm print:min-w-0">
           <thead className="bg-ground-sunk">
             <tr className="text-ink-muted text-left text-xs uppercase">
@@ -176,7 +199,35 @@ export default async function AdminReportsPage({
       {type === 'guests' ? (
         <section>
           <SectionHeading title="Repeat guests" note="Phone numbers are masked in reports." />
-          <div className="overflow-x-auto print:overflow-visible">
+
+          <ul className="border-line divide-line divide-y rounded-2xl border lg:hidden print:hidden">
+            {guests.items.map((guest) => (
+              <li key={guest.guestId} className="px-4 py-3">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-ink min-w-0 truncate font-medium">
+                    {guest.name ?? guest.guestCode}
+                  </span>
+                  <span className="text-ink text-sm font-semibold tabular-nums">
+                    {guest.averageRating === null ? '—' : guest.averageRating.toFixed(2)}
+                  </span>
+                </div>
+                <p className="text-ink-soft mt-1 text-xs tabular-nums">
+                  {guest.phoneMasked ?? '—'}
+                </p>
+                <p className="text-ink-muted mt-1 text-xs tabular-nums">
+                  {guest.totalFeedbacks} visit{guest.totalFeedbacks === 1 ? '' : 's'} · last{' '}
+                  {guest.lastFeedbackDate ?? '—'}
+                </p>
+              </li>
+            ))}
+            {guests.items.length === 0 ? (
+              <li className="text-ink-muted px-4 py-4 text-center text-sm">
+                No repeat guests yet.
+              </li>
+            ) : null}
+          </ul>
+
+          <div className="hidden overflow-x-auto lg:block print:block print:overflow-visible">
             <table className="border-line w-full min-w-[520px] border text-sm print:min-w-0">
             <thead className="bg-ground-sunk">
               <tr className="text-ink-muted text-left text-xs uppercase">

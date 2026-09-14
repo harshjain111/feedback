@@ -38,8 +38,66 @@ export function CategoryTable({
   range: DateRange
 }) {
   return (
-    <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
-      <table className="w-full min-w-[640px] text-sm">
+    <>
+      {/*
+        Below lg each category is a card. The 640px table put Negative — the
+        column anybody scanning this page is looking for — off the right edge of
+        a phone.
+      */}
+      <ul className="border-line bg-surface divide-line divide-y rounded-2xl border lg:hidden">
+        {categories.map((category) => {
+          const status = STATUS[category.status]
+          return (
+            <li key={category.categoryId} className="px-4 py-3">
+              <div className="flex items-baseline justify-between gap-3">
+                <Link
+                  href={insightHref({
+                    from: range.from,
+                    to: range.to,
+                    categoryId: category.categoryId,
+                  })}
+                  className="text-ink hover:text-accent min-w-0 truncate font-medium"
+                >
+                  {category.name}
+                </Link>
+                <span className="text-ink text-lg font-semibold tabular-nums">
+                  {category.score.value === null ? '—' : category.score.value.toFixed(2)}
+                </span>
+              </div>
+
+              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                <DeltaBadge comparison={category.score} polarity="higher-is-better" />
+                <span className={cn('inline-flex items-center gap-1.5 text-xs', status.text)}>
+                  <span className={cn('h-2 w-2 rounded-full', status.dot)} aria-hidden="true" />
+                  {status.label}
+                </span>
+              </div>
+
+              <p className="text-ink-muted mt-1.5 text-xs tabular-nums">
+                {category.ratingCount} rating{category.ratingCount === 1 ? '' : 's'} ·{' '}
+                {category.negativeCount > 0 ? (
+                  <Link
+                    href={insightHref({
+                      from: range.from,
+                      to: range.to,
+                      categoryId: category.categoryId,
+                      ratingBand: 'negative',
+                    })}
+                    className="text-[color:var(--color-bad)] hover:underline"
+                  >
+                    {category.negativeCount} negative
+                  </Link>
+                ) : (
+                  <span>0 negative</span>
+                )}
+              </p>
+            </li>
+          )
+        })}
+      </ul>
+
+      <div className="border-line bg-surface hidden overflow-x-auto rounded-2xl border lg:block">
+        <table className="w-full min-w-[640px] text-sm">
         <thead>
           <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">
             <th scope="col" className="px-4 py-2.5 font-medium">
@@ -114,7 +172,8 @@ export function CategoryTable({
             )
           })}
         </tbody>
-      </table>
-    </div>
+        </table>
+      </div>
+    </>
   )
 }

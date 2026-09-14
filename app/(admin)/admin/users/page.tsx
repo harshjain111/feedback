@@ -51,26 +51,22 @@ export default async function AdminUsersPage() {
 
       <section>
         <SectionHeading title="What each role can do" />
-        <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
-          <table className="w-full min-w-[560px] text-sm">
-            <thead>
-              <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">
-                <th className="px-4 py-2.5 font-medium">Role</th>
-                <th className="px-4 py-2.5 font-medium">Can</th>
-              </tr>
-            </thead>
-            <tbody className="divide-line divide-y">
-              {ROLES.map((role) => (
-                <tr key={role} className="align-top">
-                  <td className="text-ink px-4 py-2.5 font-medium whitespace-nowrap">{role}</td>
-                  <td className="text-ink-soft px-4 py-2.5 text-xs">
-                    {actionsFor(role).join(' · ')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {/*
+          A stacked list rather than a two-column table, at every width. The
+          "Can" column is a long run of action names, which is what forced the
+          560px minimum and pushed it off a phone; wrapping it under its own
+          heading reads better wide as well, so there is no second layout here.
+        */}
+        <dl className="border-line bg-surface divide-line divide-y rounded-2xl border">
+          {ROLES.map((role) => (
+            <div key={role} className="px-4 py-3 sm:flex sm:gap-6">
+              <dt className="text-ink text-sm font-medium sm:w-28 sm:shrink-0">{role}</dt>
+              <dd className="text-ink-soft mt-1 text-xs sm:mt-0">
+                {actionsFor(role).join(' · ')}
+              </dd>
+            </div>
+          ))}
+        </dl>
         <p className="text-ink-muted mt-2 text-xs">
           Deactivating a user removes every one of these immediately, whatever their role.
         </p>
