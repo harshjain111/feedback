@@ -8,6 +8,8 @@ import { getConfig } from '@/lib/config'
 import { BLOCKED_LABELS, memorySwitch } from '@/lib/memory-switch'
 import { can } from '@/lib/permissions'
 
+export const metadata = { title: 'Memory prints' }
+
 /**
  * Settings → Memory prints (PHOTO_MODULE.md §8b, §9).
  *

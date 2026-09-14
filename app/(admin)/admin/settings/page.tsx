@@ -5,6 +5,8 @@ import { SectionHeading } from '@/components/admin/SectionHeading'
 import { requireUser } from '@/lib/auth'
 import { can } from '@/lib/permissions'
 
+export const metadata = { title: 'Settings' }
+
 /**
  * Settings index (§3).
  *

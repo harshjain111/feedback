@@ -19,6 +19,8 @@ import {
 import { getDayOfWeekBreakdown, getHourBucketBreakdown } from '@/lib/queries/time'
 import { parseRange } from '@/lib/range'
 
+export const metadata = { title: 'Analytics' }
+
 /**
  * Analytics — trends, category performance, comment intelligence and the
  * time/day cuts (§24–§26, §33–§34).

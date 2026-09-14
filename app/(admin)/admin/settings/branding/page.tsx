@@ -5,6 +5,8 @@ import { requireUser } from '@/lib/auth'
 import { getConfig } from '@/lib/config'
 import { can } from '@/lib/permissions'
 
+export const metadata = { title: 'Branding' }
+
 /** Branding shown in the kiosk footer (§37). */
 export default async function SettingsBrandingPage() {
   const user = await requireUser('/admin/settings/branding')

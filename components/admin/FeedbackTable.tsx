@@ -47,7 +47,7 @@ export function FeedbackTable({
         <li key={item.feedbackId}>
           <Link
             href={`/admin/feedback/${item.feedbackId}?${searchParams}`}
-            className="hover:bg-ground-sunk/60 focus-visible:bg-ground-sunk/60 group flex w-full items-start gap-4 px-4 py-3.5 transition-colors outline-none"
+            className="hover:bg-ground-sunk/60 focus-visible:bg-ground-sunk/60 group flex w-full items-start gap-4 px-4 py-3.5 transition-colors"
           >
             {/* The score, as the thing the eye lands on first. */}
             <span

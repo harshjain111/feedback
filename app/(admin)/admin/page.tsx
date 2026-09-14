@@ -33,6 +33,8 @@ import { getInsights } from '@/lib/queries/insights'
 import { getKiosks } from '@/lib/queries/kiosks'
 import { parseRange, rangeToParams } from '@/lib/range'
 
+export const metadata = { title: 'Dashboard' }
+
 /**
  * Today at a Glance — CLAUDE.md §32.
  *

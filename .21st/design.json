@@ -1,0 +1,352 @@
+{
+  "version": 1,
+  "project": {
+    "name": "aic-cxis",
+    "productType": "internal-tool + kiosk",
+    "stack": [
+      "nextjs",
+      "react",
+      "tailwind-v4"
+    ]
+  },
+  "sources": {
+    "tokens": [
+      "app/globals.css"
+    ],
+    "components": [
+      "components/admin",
+      "components/kiosk"
+    ],
+    "assets": [
+      "public/brand"
+    ],
+    "instructions": [
+      "CLAUDE.md"
+    ]
+  },
+  "design": {
+    "colorMode": "light",
+    "colors": {
+      "--color-ground": {
+        "value": "#fbf6ec",
+        "source": "app/globals.css"
+      },
+      "--color-ground-sunk": {
+        "value": "#f4ecdd",
+        "source": "app/globals.css"
+      },
+      "--color-surface": {
+        "value": "#fffdf8",
+        "source": "app/globals.css"
+      },
+      "--color-ink": {
+        "value": "#1c1613",
+        "source": "app/globals.css"
+      },
+      "--color-ink-soft": {
+        "value": "#4a3f38",
+        "source": "app/globals.css"
+      },
+      "--color-ink-muted": {
+        "value": "#857567",
+        "source": "app/globals.css"
+      },
+      "--color-line": {
+        "value": "#e8dcc8",
+        "source": "app/globals.css"
+      },
+      "--color-line-strong": {
+        "value": "#d6c6ac",
+        "source": "app/globals.css"
+      },
+      "--color-accent": {
+        "value": "#0f5132",
+        "source": "app/globals.css"
+      },
+      "--color-accent-hover": {
+        "value": "#0b3d26",
+        "source": "app/globals.css"
+      },
+      "--color-accent-soft": {
+        "value": "#e6efe9",
+        "source": "app/globals.css"
+      },
+      "--color-accent-ink": {
+        "value": "#ffffff",
+        "source": "app/globals.css"
+      },
+      "--color-terracotta": {
+        "value": "#a8482a",
+        "source": "app/globals.css"
+      },
+      "--color-tint-positive": {
+        "value": "#eef6ee",
+        "source": "app/globals.css"
+      },
+      "--color-tint-negative": {
+        "value": "#fdeeee",
+        "source": "app/globals.css"
+      },
+      "--color-tint-neutral": {
+        "value": "#fbf6ec",
+        "source": "app/globals.css"
+      },
+      "--color-rating-1": {
+        "value": "#e63329",
+        "source": "app/globals.css"
+      },
+      "--color-rating-2": {
+        "value": "#f07829",
+        "source": "app/globals.css"
+      },
+      "--color-rating-3": {
+        "value": "#f5c518",
+        "source": "app/globals.css"
+      },
+      "--color-rating-4": {
+        "value": "#8dc63f",
+        "source": "app/globals.css"
+      },
+      "--color-rating-5": {
+        "value": "#39b54a",
+        "source": "app/globals.css"
+      },
+      "--color-sidebar": {
+        "value": "#10261c",
+        "source": "app/globals.css"
+      },
+      "--color-sidebar-soft": {
+        "value": "#1b3a2b",
+        "source": "app/globals.css"
+      },
+      "--color-sidebar-ink": {
+        "value": "#dfe9e3",
+        "source": "app/globals.css"
+      },
+      "--color-admin-bg": {
+        "value": "#f6f4ef",
+        "source": "app/globals.css"
+      },
+      "--color-good": {
+        "value": "#2f7d4f",
+        "source": "app/globals.css"
+      },
+      "--color-warn": {
+        "value": "#b8791f",
+        "source": "app/globals.css"
+      },
+      "--color-bad": {
+        "value": "#b3261e",
+        "source": "app/globals.css"
+      }
+    },
+    "typography": {
+      "--font-display": {
+        "value": "var(--font-fraunces), 'Iowan Old Style', Georgia, serif",
+        "source": "app/globals.css"
+      },
+      "--font-sans": {
+        "value": "var(--font-inter), ui-sans-serif, system-ui, sans-serif",
+        "source": "app/globals.css"
+      },
+      "--text-k-display": {
+        "value": "calc(96 * var(--kpx))",
+        "source": "app/globals.css"
+      },
+      "--text-k-h1": {
+        "value": "calc(76 * var(--kpx))",
+        "source": "app/globals.css"
+      },
+      "--text-k-h1--line-height": {
+        "value": "1.06",
+        "source": "app/globals.css"
+      },
+      "--text-k-h1--letter-spacing": {
+        "value": "-0.015em",
+        "source": "app/globals.css"
+      },
+      "--text-k-h2": {
+        "value": "calc(54 * var(--kpx))",
+        "source": "app/globals.css"
+      },
+      "--text-k-h3": {
+        "value": "calc(40 * var(--kpx))",
+        "source": "app/globals.css"
+      },
+      "--text-k-h3--line-height": {
+        "value": "1.2",
+        "source": "app/globals.css"
+      },
+      "--text-k-lead": {
+        "value": "calc(34 * var(--kpx))",
+        "source": "app/globals.css"
+      },
+      "--text-k-lead--line-height": {
+        "value": "1.35",
+        "source": "app/globals.css"
+      },
+      "--text-k-body": {
+        "value": "calc(30 * var(--kpx))",
+        "source": "app/globals.css"
+      },
+      "--text-k-body--line-height": {
+        "value": "1.45",
+        "source": "app/globals.css"
+      },
+      "--text-k-small": {
+        "value": "calc(26 * var(--kpx))",
+        "source": "app/globals.css"
+      },
+      "--text-k-small--line-height": {
+        "value": "1.4",
+        "source": "app/globals.css"
+      },
+      "--text-k-micro": {
+        "value": "calc(24 * var(--kpx))",
+        "source": "app/globals.css"
+      },
+      "--text-k-micro--line-height": {
+        "value": "1.35",
+        "source": "app/globals.css"
+      },
+      "--text-k-display--line-height": {
+        "value": "1",
+        "source": "app/globals.css"
+      },
+      "--text-k-h2--line-height": {
+        "value": "1.12",
+        "source": "app/globals.css"
+      }
+    },
+    "spacing": {
+      "--spacing": {
+        "value": "calc(4 * var(--kpx))",
+        "source": "app/globals.css"
+      }
+    },
+    "radius": {
+      "--radius-chip": {
+        "value": "999px",
+        "source": "app/globals.css"
+      },
+      "--radius-card": {
+        "value": "calc(32 * var(--kpx))",
+        "source": "app/globals.css"
+      },
+      "--radius-button": {
+        "value": "9999px",
+        "source": "app/globals.css"
+      }
+    },
+    "shadows": {},
+    "motion": {
+      "--ease-kiosk": {
+        "value": "cubic-bezier(0.2, 0, 0.1, 1)",
+        "source": "app/globals.css"
+      },
+      "--duration-kiosk": {
+        "value": "180ms",
+        "source": "app/globals.css"
+      }
+    },
+    "density": "compact (admin) / oversized (kiosk)"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [
+      "components/admin/Panel",
+      "components/admin/SectionHeading",
+      "components/admin/Tag",
+      "components/admin/Skeleton",
+      "components/admin/StatusBadge",
+      "components/admin/KpiCard",
+      "components/admin/DeltaBadge",
+      "components/admin/ExportButton",
+      "components/kiosk/BigButton",
+      "components/kiosk/EmojiScale",
+      "components/kiosk/ChipGrid"
+    ],
+    "patterns": [
+      "Lists of links, not tables: the whole row is the target (feedback, guests).",
+      "Two layouts per data view — cards below lg, columnar grid from lg up.",
+      "Every route has a loading.tsx whose skeleton mirrors that page shape.",
+      "Kiosk sizes in --kpx design pixels, never raw px."
+    ]
+  },
+  "constraints": {
+    "must": [
+      "Read CLAUDE.md before changing any surface; §5 copy and §6 kiosk geometry are locked.",
+      "Take every customer-facing string from app_config via getConfig() (§3). A literal is a bug.",
+      "Use the existing colour/type/radius tokens in app/globals.css; add a token rather than an arbitrary value.",
+      "Keep both layouts when touching a data view: mobile cards and the wide grid.",
+      "Preserve loading, empty and error states — each route has a skeleton shaped like the page.",
+      "Keyboard focus must stay visible; the global :focus-visible ring is in app/globals.css."
+    ],
+    "avoid": [
+      "Restyling the kiosk: §6 fixes portrait 1080x1920, --kpx sizing and 88px tap targets.",
+      "Editing locked kiosk copy anywhere but the CMS (§14.4).",
+      "Adding a UI library or parallel primitives — this project has no components/ui and does not want one.",
+      "Decorative gradients, glass, shadows. The visual language is paper on paper separated by hairlines.",
+      "Tables with a min-width on mobile; they push the document wider than the viewport."
+    ]
+  },
+  "decisions": [
+    {
+      "date": "2026-09-14",
+      "choice": "Global :focus-visible ring in currentColor, 2px solid at 2px offset.",
+      "why": "Custom rows and icon buttons had no visible keyboard focus at all. currentColor adapts to context by itself — white on the dark sidebar, ink on the cream canvas — so it needs no per-surface override. An accent-green ring required one, because green on the #10261c sidebar is close to invisible.",
+      "files": [
+        "app/globals.css"
+      ]
+    },
+    {
+      "date": "2026-09-14",
+      "choice": "Titles use a \"%s · All India Café\" template, each admin page supplying its own name.",
+      "why": "Every admin tab read \"All India Café\"; managers keep several open at once.",
+      "files": [
+        "app/layout.tsx",
+        "app/(admin)/admin/**/page.tsx"
+      ]
+    },
+    {
+      "date": "2026-09-14",
+      "choice": "error.tsx and not-found.tsx live inside the admin segment, so the shell survives.",
+      "why": "notFound() was already called on both detail routes but there was no boundary, so a stale link dropped to a bare Next 404 with no nav.",
+      "files": [
+        "app/(admin)/admin/error.tsx",
+        "app/(admin)/admin/not-found.tsx"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "fact": "components.installed",
+      "source": "components/ui"
+    },
+    {
+      "fact": "design.colorMode:light",
+      "source": "app/globals.css"
+    },
+    {
+      "fact": "design.tokens",
+      "source": "app/globals.css"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "CLAUDE.md"
+    },
+    {
+      "fact": "project.stack:nextjs",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:react",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:tailwind-v4",
+      "source": "package.json"
+    }
+  ],
+  "generatedAt": "2026-09-14T07:27:26.985Z"
+}

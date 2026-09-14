@@ -5,6 +5,8 @@ import { requireUser } from '@/lib/auth'
 import { actionsFor, can, isRole, ROLES } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/server'
 
+export const metadata = { title: 'Users' }
+
 /**
  * Users and roles (§42, Prompt 39).
  *

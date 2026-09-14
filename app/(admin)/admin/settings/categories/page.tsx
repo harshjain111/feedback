@@ -8,6 +8,8 @@ import { AVAILABLE_ICONS } from '@/components/kiosk/CategoryIcon'
 import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/server'
 
+export const metadata = { title: 'Categories' }
+
 /**
  * Categories, issue chips and the comment lexicon (§36).
  *

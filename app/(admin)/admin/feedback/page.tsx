@@ -11,6 +11,8 @@ import { getFeedbackList } from '@/lib/queries'
 import type { FeedbackFilters as Filters } from '@/lib/queries/types'
 import { parseRange } from '@/lib/range'
 
+export const metadata = { title: 'Feedback' }
+
 const PAGE_SIZE = 25
 
 /**

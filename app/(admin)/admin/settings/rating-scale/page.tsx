@@ -6,6 +6,8 @@ import { requireUser } from '@/lib/auth'
 import { getRatingScale } from '@/lib/config'
 import { can } from '@/lib/permissions'
 
+export const metadata = { title: 'Rating scale' }
+
 /**
  * The rating scale (§37).
  *

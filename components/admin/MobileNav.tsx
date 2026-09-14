@@ -68,7 +68,7 @@ export function MobileNav({ role, name, email }: { role: Role; name: string; ema
             role="dialog"
             aria-modal="true"
             aria-label="Admin sections"
-            className="absolute inset-y-0 left-0 flex w-[17rem] max-w-[85vw] flex-col shadow-2xl"
+                  className="absolute inset-y-0 left-0 flex w-[17rem] max-w-[85vw] flex-col shadow-2xl"
             style={{ background: 'var(--color-sidebar)' }}
           >
             <div className="flex items-start justify-between">

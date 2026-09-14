@@ -11,6 +11,8 @@ import type { GuestFilterKey } from '@/lib/queries/types'
 import { cn } from '@/lib/cn'
 import { parseRange } from '@/lib/range'
 
+export const metadata = { title: 'Guests' }
+
 /** One grid template for the header and every row, so they stay aligned. */
 const COLUMNS =
   'grid-cols-[minmax(170px,1.5fr)_140px_70px_90px_120px_minmax(150px,1fr)_24px] gap-x-3'
@@ -108,7 +110,7 @@ export default async function AdminGuestsPage({
               <li key={guest.guestId}>
                 <Link
                   href={`/admin/guests/${guest.guestId}`}
-                  className="hover:bg-ground-sunk/60 focus-visible:bg-ground-sunk/60 group block px-4 py-3 text-sm outline-none lg:py-2.5"
+                  className="hover:bg-ground-sunk/60 focus-visible:bg-ground-sunk/60 group block px-4 py-3 text-sm lg:py-2.5"
                 >
                   {/* Phone and up to lg */}
                   <span className="lg:hidden">

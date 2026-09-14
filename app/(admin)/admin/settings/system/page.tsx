@@ -5,6 +5,8 @@ import { requireUser } from '@/lib/auth'
 import { getConfig } from '@/lib/config'
 import { can } from '@/lib/permissions'
 
+export const metadata = { title: 'System' }
+
 /**
  * Thresholds, alerts, rewards and privacy (§38).
  *

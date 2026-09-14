@@ -5,6 +5,8 @@ import { requireUser } from '@/lib/auth'
 import { getConfig } from '@/lib/config'
 import { can } from '@/lib/permissions'
 
+export const metadata = { title: 'Contact screen' }
+
 /**
  * The grievance officer (§37, §5).
  *

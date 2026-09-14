@@ -17,6 +17,8 @@ import {
 import { parseRange, rangeForPreset, type RangePreset } from '@/lib/range'
 import { formatIST, toLocalDate } from '@/lib/time'
 
+export const metadata = { title: 'Reports' }
+
 /**
  * Reports (§38, Prompt 40).
  *

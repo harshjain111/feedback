@@ -189,6 +189,34 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* -----------------------------------------------------------------------------
+   Keyboard focus
+
+   The admin is a keyboard tool — a manager works it with tab and enter while
+   holding a phone in the other hand — and until now tabbing through it showed
+   nothing at all. The rows, chips and icon buttons are custom elements, so the
+   browser's own outline was being suppressed by Tailwind's reset without
+   anything replacing it.
+
+   :focus-visible, not :focus, so a mouse click does not leave a ring behind.
+   The accent green reads against both the cream admin canvas and the dark
+   sidebar; the offset keeps it clear of the element's own border.
+   -------------------------------------------------------------------------- */
+
+/*
+ * currentColor, deliberately, rather than the accent token.
+ *
+ * The ring then takes the text colour of whatever it is ringing, which solves
+ * the contrast problem by itself: near-black on the cream canvas, white on the
+ * dark sidebar, without a second rule or a marker attribute to keep in sync. An
+ * accent-green ring needed exactly that second rule, because green on the dark
+ * sidebar ground is close to invisible — which is where keyboard focus matters most.
+ */
+html :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

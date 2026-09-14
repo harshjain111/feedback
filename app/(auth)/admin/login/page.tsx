@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { LoginForm } from '@/components/admin/LoginForm'
 import { getCurrentUser } from '@/lib/auth'
 
+export const metadata = { title: 'Sign in' }
+
 /**
  * Admin sign-in (§1: email + password, admin/staff only — the kiosk is public
  * and never sees this).
