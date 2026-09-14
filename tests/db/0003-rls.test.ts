@@ -522,3 +522,56 @@ describe('the memory module cannot reach past its three columns', () => {
     await db.close()
   })
 })
+
+describe('push subscriptions are visible only to the device owner (0022)', () => {
+  /*
+   * An endpoint plus its two keys is enough to push to somebody's phone. That
+   * makes this table narrower than the rest of the admin read model, which is
+   * outlet-scoped: here even a MANAGER must not be able to read a colleague's
+   * row. Worth a test precisely because it is the one place the usual
+   * "everyone in the outlet can see it" instinct is wrong.
+   */
+  async function subscribeAs(db: Db, user: string, endpoint: string) {
+    await asServiceRole(db)
+    await db.query(
+      `insert into push_subscriptions (outlet_id, user_id, endpoint, p256dh, auth)
+       values ($1, $2, $3, 'p256dh-key', 'auth-key')`,
+      [await outletId(db), user, endpoint],
+    )
+  }
+
+  it('shows a user their own device and nobody else’s', async () => {
+    await subscribeAs(f.db, f.staff, 'https://fcm.example/staff-phone')
+    await subscribeAs(f.db, f.manager, 'https://fcm.example/manager-phone')
+
+    await asUser(f.db, f.staff)
+    const mine = await rows<{ endpoint: string }>(f.db, `select endpoint from push_subscriptions`)
+    expect(mine.map((r) => r.endpoint)).toEqual(['https://fcm.example/staff-phone'])
+
+    await f.db.close()
+  })
+
+  it('will not let one user delete another’s device', async () => {
+    await subscribeAs(f.db, f.manager, 'https://fcm.example/manager-phone')
+
+    await asUser(f.db, f.staff)
+    const result = await f.db.query(
+      `delete from push_subscriptions where endpoint = 'https://fcm.example/manager-phone'`,
+    )
+    // RLS makes the row invisible, so the DELETE matches nothing.
+    expect(result.affectedRows ?? 0).toBe(0)
+
+    await asServiceRole(f.db)
+    const survivors = await rows(f.db, `select endpoint from push_subscriptions`)
+    expect(survivors.length).toBe(1)
+
+    await f.db.close()
+  })
+
+  it('refuses anon entirely — the kiosk has no business here', async () => {
+    await asAnon(f.db)
+    const denied = await isDenied(f.db.query(`select * from push_subscriptions`))
+    expect(denied).toBe(true)
+    await f.db.close()
+  })
+})

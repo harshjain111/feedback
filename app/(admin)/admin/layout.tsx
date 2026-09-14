@@ -32,6 +32,16 @@ import { getKiosks } from '@/lib/queries/kiosks'
  */
 export const dynamic = 'force-dynamic'
 
+/*
+ * Points the admin at its OWN manifest, overriding the kiosk one from the root
+ * layout. Installing the kiosk manifest on a phone would give a manager the
+ * guest journey, fullscreen and portrait-locked, with no address bar to escape.
+ *
+ * On iOS this is also the difference between push working and not: Safari
+ * delivers Web Push only to a PWA added to the Home Screen, never to a tab.
+ */
+export const metadata = { manifest: '/admin/manifest.webmanifest' }
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   /*
    * ONLY the guard is awaited here, and that is the point.

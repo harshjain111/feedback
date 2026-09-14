@@ -16,6 +16,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { can, type Action, type Role } from '@/lib/permissions'
 import { cn } from '@/lib/cn'
+import { NotificationToggle } from './NotificationToggle'
 
 type NavItem = { href: string; label: string; icon: LucideIcon; requires: Action }
 
@@ -152,6 +153,13 @@ export function SidebarFooter({
       <p className="truncate px-3 text-[11px] text-white/50">
         {role} · {email}
       </p>
+
+      {/* A per-DEVICE preference, so it sits with the per-user block rather
+          than in Settings — which is manage:cms only, and would have locked
+          MANAGER out of the alerts they are the ones who need. */}
+      <div className="mt-2 border-t border-white/10 pt-2">
+        <NotificationToggle tone="dark" />
+      </div>
         <button
           type="button"
           onClick={async () => {

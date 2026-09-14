@@ -458,6 +458,41 @@ Every insight card answers: *What happened? How significant? Improving or worsen
 
 **Alerts (§27).** Evaluated on write in `POST /api/feedback` + a poll endpoint the dashboard hits every 60s. Thresholds and cooldowns configurable; every alert carries a `dedupe_key` so one live condition is one row (§7). Example: `3 customers rated Service 1/5 in the last 45 minutes.`
 
+**Push notifications (added 14 Sep 2026, client request).** An alert is only seen
+by somebody already looking at the dashboard. Web Push carries the same event to a
+phone the moment the submission commits, which is the point — a manager can reach the
+table while the guest is still at it.
+
+- **Trigger:** the same `alerts.rating_at_or_below` threshold as everything else here.
+  It defaults to **2**, i.e. the client's "lower than 3 star", and stays editable from
+  Settings → System without a deploy. There is no second threshold to keep in sync.
+- **One notification per submission, not per category.** A guest who rates food 1,
+  service 2 and hospitality 2 has had one bad visit; three buzzes in the same second
+  teach the recipient to swipe them away. The per-category `alerts` rows are unchanged —
+  the dashboard is a place to work through causes one at a time, a phone is not.
+- **The body is the guest's own words** where there are any, truncated to ~160 chars.
+  "Food was cold and nobody came back" is what makes somebody walk over; "Food was rated
+  1 out of 5" is a number they read later.
+- **Subscriptions are per DEVICE, not per account** (`push_subscriptions`, 0022), and
+  readable only by their owner — an endpoint plus its keys can push to that phone, so
+  this table is deliberately narrower than the outlet-wide read model everything else
+  uses. Proven by tests in `0003-rls.test.ts`.
+- **The toggle lives in the nav footer**, not in Settings. Settings is `manage:cms`
+  (OWNER/ADMIN), and MANAGER is exactly who needs to be told about a complaint.
+- Notifications carry guest name, category and comment — all of which STAFF can already
+  read in the feedback list. **No phone number**, per §11.
+- **Requires the admin PWA on iOS.** Safari delivers Web Push only to a PWA added to the
+  Home Screen (16.4+), never to a tab. Android and desktop Chrome work either way.
+- Delivery never throws: it runs after the feedback row commits, and a push service being
+  down must not cost a guest their submission. Dead endpoints (404/410) are deleted;
+  soft failures are counted and drop out after five.
+
+**A second manifest.** `/admin/manifest.webmanifest` is scoped to `/admin`, starts there,
+and is `standalone` with no orientation lock. The kiosk manifest cannot serve this: it is
+scoped to `/`, starts at the guest journey, and is fullscreen and portrait-locked for a
+bolted-down 1080×1920 panel (§6). Installing that on a phone would hand a manager the
+feedback form with no way out of it.
+
 ---
 
 ## 10. EXCEL EXPORT (§39)

@@ -130,3 +130,65 @@ self.addEventListener('fetch', (event) => {
     )
   }
 })
+
+/* -----------------------------------------------------------------------------
+   Web Push
+
+   The admin installed on a phone, told the moment a guest rates anything below
+   the alert threshold. The alert itself is raised on the server the instant the
+   submission commits (§27); this is only the part that makes a phone buzz.
+
+   Nothing here touches the kiosk. The fetch handler above still bypasses
+   /admin entirely — push and caching are independent concerns that happen to
+   share a worker, because a scope may only have one.
+   -------------------------------------------------------------------------- */
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return
+
+  let payload
+  try {
+    payload = event.data.json()
+  } catch {
+    // A push with a body we cannot parse is still worth surfacing — silence
+    // would be indistinguishable from the feature being broken.
+    payload = { title: 'New feedback', body: event.data.text(), url: '/admin', tag: 'feedback' }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title ?? 'New feedback', {
+      body: payload.body ?? '',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      // The tag collapses repeats of the same subject rather than stacking
+      // four notifications for one bad visit.
+      tag: payload.tag ?? 'feedback',
+      renotify: true,
+      // A complaint is worth interrupting for; that is the whole request.
+      requireInteraction: false,
+      data: { url: payload.url ?? '/admin' },
+    }),
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const target = event.notification.data?.url ?? '/admin'
+
+  event.waitUntil(
+    (async () => {
+      const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+
+      // Focus a tab that is already on the admin and send it to the feedback
+      // rather than opening a second window on top of the one they had open.
+      for (const client of all) {
+        if (client.url.includes('/admin')) {
+          await client.focus()
+          if ('navigate' in client) await client.navigate(target)
+          return
+        }
+      }
+      await self.clients.openWindow(target)
+    })(),
+  )
+})

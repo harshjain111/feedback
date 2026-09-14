@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { AppConfig } from '@/lib/config.types'
 import type { Database } from '@/types/database'
 import { toLocalDate } from '@/lib/time'
+import { lowRatingNotification, pushToOutlet } from './push'
 
 /**
  * Real-time alerts — CLAUDE.md §27.
@@ -96,6 +97,8 @@ type EvaluationInput = {
   ratings: { categoryId: string; categoryName: string; rating: number }[]
   followUpRequested: boolean
   guestName: string | null
+  /** The guest's own words, used as the notification body where there are any. */
+  comment?: string | null
 }
 
 /**
@@ -112,6 +115,34 @@ export async function evaluateAlerts(input: EvaluationInput): Promise<void> {
     const lowRatings = input.ratings.filter(
       (rating) => rating.rating <= config.alerts.rating_at_or_below,
     )
+
+    /*
+     * Push, before the per-category alerts below.
+     *
+     * ONE notification per submission, not one per low category: a guest who
+     * rates food 1, service 2 and hospitality 2 has had one bad visit, and
+     * three buzzes in the same second teaches the recipient to swipe them away.
+     * The alert rows below stay per-category, because the dashboard is a place
+     * to work through causes one at a time; a phone is not.
+     *
+     * Driven off the same `alerts.rating_at_or_below` threshold as everything
+     * else here, which defaults to 2 — "lower than 3 star", the client's words
+     * — and stays editable from Settings without a deploy.
+     */
+    if (lowRatings.length > 0) {
+      const worst = lowRatings.reduce((a, b) => (b.rating < a.rating ? b : a))
+      await pushToOutlet(
+        db,
+        outletId,
+        lowRatingNotification({
+          feedbackId: input.feedbackId,
+          guestName: input.guestName,
+          comment: input.comment ?? null,
+          worst: { categoryName: worst.categoryName, rating: worst.rating },
+          lowCount: lowRatings.length,
+        }),
+      )
+    }
 
     // 1 — a single very low rating
     for (const rating of lowRatings) {

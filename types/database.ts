@@ -784,6 +784,63 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          subscription_id: string
+          outlet_id: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          user_agent: string | null
+          label: string | null
+          created_at: string
+          last_used_at: string | null
+          failure_count: number
+        }
+        Insert: {
+          subscription_id?: string
+          outlet_id: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          user_agent?: string | null
+          label?: string | null
+          created_at?: string
+          last_used_at?: string | null
+          failure_count?: number
+        }
+        Update: {
+          subscription_id?: string
+          outlet_id?: string
+          user_id?: string
+          endpoint?: string
+          p256dh?: string
+          auth?: string
+          user_agent?: string | null
+          label?: string | null
+          created_at?: string
+          last_used_at?: string | null
+          failure_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'push_subscriptions_outlet_id_fkey'
+            columns: ['outlet_id']
+            isOneToOne: false
+            referencedRelation: 'outlets'
+            referencedColumns: ['outlet_id']
+          },
+          {
+            foreignKeyName: 'push_subscriptions_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'app_users'
+            referencedColumns: ['user_id']
+          },
+        ]
+      }
       rating_scale: {
         Row: {
           scale_id: string

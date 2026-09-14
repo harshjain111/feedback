@@ -242,6 +242,8 @@ export async function POST(request: Request): Promise<Response> {
       })),
       followUpRequested: submission.followUpRequested === true,
       guestName: submission.name.trim() === '' ? null : submission.name.trim(),
+      // The guest's own words carry the push notification's body.
+      comment: submission.comment?.trim() ? submission.comment.trim() : null,
     })
 
     return NextResponse.json({ feedbackCode: feedback.feedback_code })
