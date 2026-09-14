@@ -45,26 +45,29 @@ export default async function AdminGuestsPage({
   const page = Number(single('page') ?? '1')
   const search = single('q')
 
+  const range = parseRange(params)
+
   const result = await getGuestList(
     filter,
     { page: Number.isFinite(page) ? page : 1, pageSize: PAGE_SIZE },
     search,
+    range,
   )
 
   return (
     <div className="space-y-5">
       <SectionHeading
         title="Guests"
-        note={`${result.total} guest${result.total === 1 ? '' : 's'}`}
+        note={`${result.total} guest${result.total === 1 ? '' : 's'} who visited between ${range.from} and ${range.to}`}
         level="page"
-        action={can(user, 'export:data') ? <ExportButton range={parseRange(params)} /> : null}
+        action={can(user, 'export:data') ? <ExportButton range={range} /> : null}
       />
 
       <GuestFilters />
 
       {result.items.length === 0 ? (
         <div className="border-line text-ink-muted rounded-2xl border border-dashed p-8 text-center text-sm">
-          No guests match this filter. Guests are created when someone leaves a phone number.
+          {`No guests visited between ${range.from} and ${range.to}. Widen the date range, or check the filter above — guests are only created when someone leaves a phone number.`}
         </div>
       ) : (
         <div className="border-line bg-surface overflow-x-auto rounded-2xl border">

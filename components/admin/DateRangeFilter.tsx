@@ -11,10 +11,25 @@ import { cn } from '@/lib/cn'
  * something worth showing someone can send the link and it opens on the same
  * window. It also means the insight-card deep links (§21) can land pre-filtered.
  */
+/**
+ * Routes with no date dimension at all.
+ *
+ * This control lives in the admin layout, so it renders on every page whether
+ * or not that page reads it. On Users and Settings there is nothing to filter,
+ * and a range control that changes nothing invites exactly the question the
+ * guests list already provoked: "it says Today, so why am I looking at last
+ * week?" Better absent than inert.
+ */
+const DATELESS_ROUTES = ['/admin/users', '/admin/settings']
+
 export function DateRangeFilter() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+
+  const dateless = DATELESS_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  )
 
   // Derived from the URL rather than passed in, so this can live in the layout
   // header — layouts do not receive searchParams in the App Router.
@@ -31,6 +46,10 @@ export function DateRangeFilter() {
     }
     router.push(`${pathname}?${params.toString()}`)
   }
+
+  // After the hooks, never before them — an early return above useSearchParams
+  // would change the hook order between routes.
+  if (dateless) return null
 
   return (
     <div className="flex flex-wrap items-center gap-2">

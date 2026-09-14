@@ -60,6 +60,7 @@ export async function getGuestList(
   filter: GuestFilterKey,
   pagination: Pagination,
   search?: string,
+  range?: { from: string; to: string },
 ): Promise<Paged<GuestListItem>> {
   const user = await getCurrentUser()
   if (!user) throw new Error('Not signed in')
@@ -68,10 +69,51 @@ export async function getGuestList(
   const page = Math.max(1, pagination.page)
   const pageSize = Math.min(200, Math.max(1, pagination.pageSize))
 
+  /*
+   * The date window, which this list used to ignore completely.
+   *
+   * The header range control sits in the admin layout, so it renders on this
+   * page too — and it did nothing here. Picking "Today" left all 209 guests on
+   * screen with "last seen" dates from days earlier, which reads as broken data
+   * rather than an unwired filter.
+   *
+   * Scoped on FEEDBACK rows in the window rather than on the summary's
+   * last_feedback_date: a guest who came yesterday and again today has a
+   * last_feedback_date of today, and filtering on it would drop them from
+   * "Yesterday" even though that is exactly when they visited.
+   *
+   * The cost is one extra round trip and an id list in the query string. At this
+   * outlet's volume (~200 guests a month) that is nothing; if a range ever
+   * returns several thousand guests the URL will outgrow PostgREST's limit and
+   * this needs to become an RPC that does the join in Postgres.
+   */
+  let guestIdsInRange: string[] | null = null
+  if (range) {
+    const { data: visited } = await client
+      .from('feedback')
+      .select('guest_id')
+      .eq('outlet_id', user.outletId)
+      .gte('local_date', range.from)
+      .lte('local_date', range.to)
+      .not('guest_id', 'is', null)
+
+    guestIdsInRange = [
+      ...new Set((visited ?? []).map((row) => row.guest_id).filter((id): id is string => !!id)),
+    ]
+
+    // An empty `.in()` is not a filter PostgREST can express, and sending one
+    // would quietly return everything — the bug this is here to fix.
+    if (guestIdsInRange.length === 0) {
+      return { items: [], total: 0, page, pageSize, pageCount: 0 }
+    }
+  }
+
   let query = client
     .from('v_guest_summary')
     .select('*', { count: 'exact' })
     .eq('outlet_id', user.outletId)
+
+  if (guestIdsInRange) query = query.in('guest_id', guestIdsInRange)
 
   switch (filter) {
     case 'new':
