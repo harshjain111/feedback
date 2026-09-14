@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ChevronRight } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { GuestFilters } from '@/components/admin/GuestFilters'
 import { ExportButton } from '@/components/admin/ExportButton'
@@ -9,6 +10,10 @@ import { getGuestList } from '@/lib/queries'
 import type { GuestFilterKey } from '@/lib/queries/types'
 import { cn } from '@/lib/cn'
 import { parseRange } from '@/lib/range'
+
+/** One grid template for the header and every row, so they stay aligned. */
+const COLUMNS =
+  'grid-cols-[minmax(170px,1.5fr)_140px_70px_90px_120px_minmax(150px,1fr)_24px] gap-x-3'
 
 const PAGE_SIZE = 30
 
@@ -71,58 +76,69 @@ export default async function AdminGuestsPage({
         </div>
       ) : (
         <div className="border-line bg-surface overflow-x-auto rounded-2xl border">
-          <table className="w-full min-w-[820px] text-sm">
-            <thead>
-              <tr className="border-line text-ink-muted border-b text-left text-xs uppercase">
-                <th scope="col" className="px-4 py-2.5 font-medium">
-                  Guest
-                </th>
-                <th scope="col" className="px-4 py-2.5 font-medium">
-                  Phone
-                </th>
-                <th scope="col" className="px-4 py-2.5 text-right font-medium">
-                  Visits
-                </th>
-                <th scope="col" className="px-4 py-2.5 text-right font-medium">
-                  Average
-                </th>
-                <th scope="col" className="px-4 py-2.5 font-medium">
-                  Last seen
-                </th>
-                <th scope="col" className="px-4 py-2.5 font-medium">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-line divide-y">
+          {/*
+            A list of links rather than a table.
+
+            The name alone used to be the link, so clicking the phone, the visit
+            count or anywhere else in the row did nothing — and the row is what
+            people aim at. Same reasoning, and the same interaction, as the
+            feedback list. The grid keeps the columns lined up; `COLUMNS` is
+            shared with the header so they cannot drift apart.
+          */}
+          <div className="min-w-[860px]">
+            <div
+              className={cn(
+                'border-line text-ink-muted grid border-b px-4 py-2.5 text-xs uppercase',
+                COLUMNS,
+              )}
+            >
+              <span>Guest</span>
+              <span>Phone</span>
+              <span className="text-right">Visits</span>
+              <span className="text-right">Average</span>
+              <span>Last seen</span>
+              <span>Status</span>
+              <span className="sr-only">Open</span>
+            </div>
+
+            <ul className="divide-line divide-y">
               {result.items.map((guest) => (
-                <tr key={guest.guestId} className="hover:bg-ground-sunk/60">
-                  <td className="px-4 py-2.5">
-                    <Link
-                      href={`/admin/guests/${guest.guestId}`}
-                      className="text-ink hover:text-accent font-medium"
-                    >
-                      {guest.name ?? guest.guestCode}
-                    </Link>
-                    <span className="text-ink-muted block text-xs">{guest.guestCode}</span>
-                  </td>
-                  <td className="text-ink-soft px-4 py-2.5 tabular-nums">
-                    {guest.phone ?? guest.phoneMasked ?? '—'}
-                  </td>
-                  <td className="text-ink px-4 py-2.5 text-right tabular-nums">
-                    {guest.totalFeedbacks}
-                  </td>
-                  <td className="px-4 py-2.5 text-right tabular-nums">
+                <li key={guest.guestId}>
+                  <Link
+                    href={`/admin/guests/${guest.guestId}`}
+                    className={cn(
+                      'hover:bg-ground-sunk/60 focus-visible:bg-ground-sunk/60 group grid items-center px-4 py-2.5 text-sm outline-none',
+                      COLUMNS,
+                    )}
+                  >
+                    <span className="min-w-0 pr-3">
+                      <span className="text-ink group-hover:text-accent block truncate font-medium">
+                        {guest.name ?? guest.guestCode}
+                      </span>
+                      <span className="text-ink-muted block text-xs">{guest.guestCode}</span>
+                    </span>
+
+                    <span className="text-ink-soft tabular-nums">
+                      {guest.phone ?? guest.phoneMasked ?? '—'}
+                    </span>
+
+                    <span className="text-ink text-right tabular-nums">
+                      {guest.totalFeedbacks}
+                    </span>
+
                     <span
                       className={cn(
+                        'text-right tabular-nums',
                         guest.isNegative ? 'text-[color:var(--color-bad)]' : 'text-ink',
                       )}
                     >
                       {guest.averageRating === null ? '—' : guest.averageRating.toFixed(2)}
                     </span>
-                  </td>
-                  <td className="text-ink-soft px-4 py-2.5">{guest.lastFeedbackDate ?? '—'}</td>
-                  <td className="px-4 py-2.5">
+
+                    <span className="text-ink-soft tabular-nums">
+                      {guest.lastFeedbackDate ?? '—'}
+                    </span>
+
                     <span className="flex flex-wrap gap-1">
                       {guest.hasOpenFollowUp ? <Tag tone="bad">Follow-up open</Tag> : null}
                       {guest.isRepeat ? (
@@ -132,11 +148,18 @@ export default async function AdminGuestsPage({
                       )}
                       {guest.isHighEngagement ? <Tag tone="good">Engaged</Tag> : null}
                     </span>
-                  </td>
-                </tr>
+
+                    <ChevronRight
+                      size={16}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                      className="text-ink-muted group-hover:text-ink-soft justify-self-end transition-colors"
+                    />
+                  </Link>
+                </li>
               ))}
-            </tbody>
-          </table>
+            </ul>
+          </div>
         </div>
       )}
     </div>
