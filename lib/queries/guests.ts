@@ -7,9 +7,10 @@ import type { GuestFilterKey, GuestListItem, GuestProfile, Paged, Pagination } f
 /**
  * Guest database and profile (§29–§31).
  *
- * Everything reads `guests_visible`, so the phone number is masked before it
- * leaves Postgres. The unmasked value is only ever produced by
- * aic_reveal_phone(), which checks the role and writes an audit_log row (§11).
+ * Everything reads `guests_visible`, which decides per role what a phone number
+ * looks like: the real thing for OWNER/ADMIN/MANAGER, NULL for STAFF, who get
+ * only the masked form (0021, §11). aic_reveal_phone() is untouched and remains
+ * the audited path — and the only route STAFF have to a number at all.
  */
 
 type SummaryRow = {
@@ -27,12 +28,15 @@ type SummaryRow = {
   has_open_follow_up: boolean
 }
 
-function toListItem(row: SummaryRow, phoneMasked: string | null): GuestListItem {
+type Phones = { masked: string | null; real: string | null }
+
+function toListItem(row: SummaryRow, phones: Phones): GuestListItem {
   return {
     guestId: row.guest_id,
     guestCode: row.guest_code,
     name: row.name,
-    phoneMasked,
+    phoneMasked: phones.masked,
+    phone: phones.real,
     totalFeedbacks: row.total_feedbacks,
     averageRating: row.average_rating === null ? null : Number(row.average_rating),
     lastFeedbackDate: row.last_feedback_date,
@@ -104,27 +108,29 @@ export async function getGuestList(
   if (error) throw new Error(`Guest list failed: ${error.message}`)
 
   const rowsData = (data ?? []) as unknown as SummaryRow[]
-  const masked = await maskedPhones(rowsData.map((row) => row.guest_id))
+  const phones = await phonesFor(rowsData.map((row) => row.guest_id))
 
-  const items = rowsData.map((row) => toListItem(row, masked.get(row.guest_id) ?? null))
+  const items = rowsData.map((row) => toListItem(row, phones.get(row.guest_id) ?? NO_PHONE))
   const total = count ?? items.length
 
   return { items, total, page, pageSize, pageCount: Math.ceil(total / pageSize) }
 }
 
-async function maskedPhones(guestIds: string[]): Promise<Map<string, string | null>> {
+const NO_PHONE: Phones = { masked: null, real: null }
+
+async function phonesFor(guestIds: string[]): Promise<Map<string, Phones>> {
   if (guestIds.length === 0) return new Map()
   const client = await createClient()
   const { data } = await client
     .from('guests_visible')
-    .select('guest_id, phone_masked')
+    .select('guest_id, phone_masked, phone')
     .in('guest_id', guestIds)
 
   // View columns are reported nullable by the type generator because Postgres
   // cannot prove otherwise; guest_id is the view's key and never actually null.
-  const pairs: [string, string | null][] = []
+  const pairs: [string, Phones][] = []
   for (const row of data ?? []) {
-    if (row.guest_id) pairs.push([row.guest_id, row.phone_masked])
+    if (row.guest_id) pairs.push([row.guest_id, { masked: row.phone_masked, real: row.phone }])
   }
   return new Map(pairs)
 }
@@ -146,7 +152,7 @@ export async function getGuestProfile(guestId: string): Promise<GuestProfile | n
   if (!data) return null
 
   const summary = data as unknown as SummaryRow
-  const masked = await maskedPhones([guestId])
+  const phones = await phonesFor([guestId])
 
   const [factsResult, historyResult, categoriesResult] = await Promise.all([
     client.from('v_rating_facts').select('category_id, rating').eq('guest_id', guestId),
@@ -202,7 +208,7 @@ export async function getGuestProfile(guestId: string): Promise<GuestProfile | n
   }
 
   return {
-    ...toListItem(summary, masked.get(guestId) ?? null),
+    ...toListItem(summary, phones.get(guestId) ?? NO_PHONE),
     firstFeedbackDate: summary.first_feedback_date,
     categoryAverages,
     history: historyRows.map((row) => ({

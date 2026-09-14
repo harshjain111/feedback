@@ -48,7 +48,15 @@ export default async function AdminGuestProfilePage({
           <div>
             <dt className="text-ink-muted text-[11px] uppercase">Phone</dt>
             <dd className="mt-0.5 text-sm">
-              {can(user, 'view:guest_phone') ? (
+              {/*
+                MANAGER+ get the number outright (0021). RevealPhone is still
+                here for anyone the view hands a null `phone` — STAFF on an
+                assigned follow-up — where aic_reveal_phone() does the check and
+                writes the audit row.
+              */}
+              {guest.phone ? (
+                <span className="text-ink tabular-nums">{guest.phone}</span>
+              ) : can(user, 'view:guest_phone') ? (
                 <RevealPhone guestId={guest.guestId} masked={guest.phoneMasked} />
               ) : (
                 <span className="text-ink">{guest.phoneMasked ?? 'Not given'}</span>

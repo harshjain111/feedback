@@ -490,10 +490,11 @@ a user roster is wanted in the export, that is a seventh sheet and a change to t
   the service is a different question when the service is withheld without it. Flagged, not
   resolved — that is a decision for the client and their counsel.
 - Consent language visible on the contact screen — not buried.
-- Phone masked as `XXXXXX3210` everywhere except: the **feedback list and feedback detail**
-  (MANAGER+ — see below), guest profile (MANAGER+), follow-up detail (assigned staff),
-  OWNER/ADMIN exports.
-- **Unmasked on the feedback surfaces as of 0021.** Client decision, 13 Sep 2026. The masking made
+- Phone shown **in full to OWNER/ADMIN/MANAGER on every admin surface** — feedback list,
+  feedback detail, guest list, guest profile — and in OWNER/ADMIN exports. Masked as
+  `XXXXXX3210` for STAFF everywhere, whose only route to a real number is
+  `aic_reveal_phone()` on a follow-up assigned to them.
+- **Unmasked for MANAGER+ as of 0021.** Client decision, 13 Sep 2026. The masking made
   the list unusable for the one thing it is for — ringing back the guest whose visit went wrong —
   because every number had to be revealed one at a time. `guests_visible` now carries a `phone`
   column that is the real number for OWNER/ADMIN/MANAGER and **NULL for STAFF**, who still see only
@@ -502,9 +503,12 @@ a user roster is wanted in the export, that is a seventh sheet and a change to t
   action. `aic_reveal_phone()` is untouched and remains the audited path for an individual,
   deliberate unmask and the only route STAFF have. The MANAGER+ audit trail is therefore coarser
   than it was — that is the trade the client asked for, recorded here rather than discovered later.
-- The **guests list stays masked** for every role. Only the feedback surfaces changed.
+- Extended to the **guest list and guest profile** on 14 Sep 2026, at the client's request and
+  for the same reason: a directory of guests you cannot ring is not a directory. No schema change
+  was needed — 0021's role-conditional column already governs it.
 - Configurable retention policy in settings (default: retain indefinitely, but the setting and the purge job must exist).
-- Every unmask/export action is audit-logged.
+- Every **export** is audit-logged, and every `aic_reveal_phone()` call. Reading a number off an
+  admin list is not, per the note above — do not read this line as promising more than that.
 
 ---
 

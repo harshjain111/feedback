@@ -24,9 +24,10 @@ const FILTERS: GuestFilterKey[] = [
 /**
  * The guest database (§29, §32).
  *
- * Phone is masked here for every role, without exception — the list is a
- * browsing surface, and §11 reserves the real number for the profile and the
- * follow-up, where revealing it is a deliberate, audit-logged act.
+ * Phone numbers are shown in full to OWNER/ADMIN/MANAGER (0021). They were
+ * masked here for every role, which made the guest directory a list of people
+ * you could not contact. STAFF still get only the masked form — §8 gives them
+ * no guest phone numbers, and that is a boundary, not a display preference.
  */
 export default async function AdminGuestsPage({
   searchParams,
@@ -54,7 +55,7 @@ export default async function AdminGuestsPage({
     <div className="space-y-5">
       <SectionHeading
         title="Guests"
-        note={`${result.total} guest${result.total === 1 ? '' : 's'} · phone numbers are masked everywhere on this page.`}
+        note={`${result.total} guest${result.total === 1 ? '' : 's'}`}
         level="page"
         action={can(user, 'export:data') ? <ExportButton range={parseRange(params)} /> : null}
       />
@@ -102,7 +103,9 @@ export default async function AdminGuestsPage({
                     </Link>
                     <span className="text-ink-muted block text-xs">{guest.guestCode}</span>
                   </td>
-                  <td className="text-ink-soft px-4 py-2.5">{guest.phoneMasked ?? '—'}</td>
+                  <td className="text-ink-soft px-4 py-2.5 tabular-nums">
+                    {guest.phone ?? guest.phoneMasked ?? '—'}
+                  </td>
                   <td className="text-ink px-4 py-2.5 text-right tabular-nums">
                     {guest.totalFeedbacks}
                   </td>

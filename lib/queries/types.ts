@@ -156,6 +156,13 @@ export type GuestListItem = {
   guestCode: string
   name: string | null
   phoneMasked: string | null
+  /**
+   * The real number, or null when the caller is STAFF.
+   *
+   * Same rule as the feedback list (0021): masking made the guest directory
+   * useless for contacting a guest. Prefer this; fall back to `phoneMasked`.
+   */
+  phone: string | null
   totalFeedbacks: number
   averageRating: number | null
   lastFeedbackDate: string | null
